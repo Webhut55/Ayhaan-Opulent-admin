@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Ayhaan Opulent</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+    <!-- Security Login Overlay -->
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2 style="margin-bottom: 1.5rem;">Admin Access</h2>
+            <div class="form-group">
+                <input type="password" id="adminPassCode" class="form-control" placeholder="Enter Access Code">
+            </div>
+            <button id="loginBtn" class="btn btn-primary" style="width: 100%;">Unlock Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Admin Navbar -->
+    <header class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <span class="nav-logo-text">ADMIN PANEL</span>
+            </div>
+            <nav class="nav-links">
+                <a href="index.html" class="btn btn-outline">View Store</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="admin-container container">
+        
+        <!-- Branding Module -->
+        <section class="admin-card">
+            <h3 style="margin-bottom: 1rem;">Store Branding</h3>
+            <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                <img id="currentLogoPreview" src="" alt="Current Logo" style="max-height: 50px; display: none; object-fit: contain;">
+                <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
+                    <label for="logoUrlInput">Global Logo Image (Upload File)</label>
+                    <input type="file" id="logoUrlInput" class="form-control" accept="image/*">
+                </div>
+                <button id="saveLogoBtn" class="btn btn-primary" style="max-width: 150px;">Upload Logo</button>
+            </div>
+        </section>
+
+        <!-- Categories CRUD -->
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem;">
+            <section class="admin-card" style="flex: 1; min-width: 300px;">
+                <h3 id="catFormTitle" style="margin-bottom: 1.5rem;">Add New Category</h3>
+                <form id="categoryForm">
+                    <input type="hidden" id="categoryId">
+                    <div class="form-group">
+                        <label for="cName">Category Name</label>
+                        <input type="text" id="cName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cImgFile">Category Image (Upload)</label>
+                        <input type="file" id="cImgFile" class="form-control" accept="image/*" required>
+                        <small id="catImgEditNotice" style="color: var(--gold-accent); display: none; margin-top: 5px;">Leave empty to keep existing image</small>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" id="saveCatBtn" class="btn btn-primary" style="flex: 1; max-width: 100%;">Save Category</button>
+                        <button type="button" id="cancelCatEditBtn" class="btn btn-outline hidden" style="flex: 1; max-width: 100%;">Cancel</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="admin-card" style="flex: 2; min-width: 400px;">
+                <h3 style="margin-bottom: 1.5rem;">Categories List</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Category Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoryTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- Products CRUD -->
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <section class="admin-card" style="flex: 1; min-width: 300px;">
+                <h3 id="formTitle" style="margin-bottom: 1.5rem;">Add New Product</h3>
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    <div class="form-group">
+                        <label for="pName">Product Name</label>
+                        <input type="text" id="pName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pDesc">Description</label>
+                        <textarea id="pDesc" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="pCategory">Category</label>
+                        <select id="pCategory" class="form-control" required>
+                            <option value="" disabled selected>Select a Category</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pImgFile">Product Image (Upload File)</label>
+                        <input type="file" id="pImgFile" class="form-control" accept="image/*" required>
+                        <small id="imgEditNotice" style="color: var(--gold-accent); display: none; margin-top: 5px;">Leave empty to keep existing image</small>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="pPrice">Price (₹)</label>
+                            <input type="number" id="pPrice" class="form-control" min="0" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="pStock">Stock Quantity</label>
+                            <input type="number" id="pStock" class="form-control" min="0" required>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" id="saveProductBtn" class="btn btn-primary" style="flex: 1; max-width: 100%;">Save Product</button>
+                        <button type="button" id="cancelEditBtn" class="btn btn-outline hidden" style="flex: 1; max-width: 100%;">Cancel</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="admin-card" style="flex: 2; min-width: 400px;">
+                <h3 style="margin-bottom: 1.5rem;">Inventory List</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+
+        const firebaseConfig = {
+            databaseURL: "https://aayhan-database-default-rtdb.firebaseio.com"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.showToast = function(message, type = 'info') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', () => {
+                    toast.remove();
+                    if (container.children.length === 0) container.remove();
+                });
+            }, 3000);
+        }
+
+        // Image compression function
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800;
+                        const MAX_HEIGHT = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Security Login
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginBtn = document.getElementById('loginBtn');
+        const passCodeInput = document.getElementById('adminPassCode');
+
+        loginBtn.addEventListener('click', () => {
+            if (passCodeInput.value === 'wbht2') {
+                loginOverlay.classList.add('hidden');
+                window.showToast('Access Granted', 'success');
+            } else {
+                window.showToast('Invalid access code', 'error');
+            }
+        });
+
+        // --- Branding / Logo Module ---
+        const logoUrlInput = document.getElementById('logoUrlInput');
+        const saveLogoBtn = document.getElementById('saveLogoBtn');
+        const logoPreview = document.getElementById('currentLogoPreview');
+        const logoRef = ref(db, 'branding/logo');
+
+        onValue(logoRef, (snapshot) => {
+            if (snapshot.exists()) {
+                logoPreview.src = snapshot.val();
+                logoPreview.style.display = 'block';
+            }
+        });
+
+        saveLogoBtn.addEventListener('click', async () => {
+            if (logoUrlInput.files.length > 0) {
+                const file = logoUrlInput.files[0];
+                saveLogoBtn.disabled = true;
+                saveLogoBtn.innerText = "Uploading...";
+                try {
+                    const base64 = await compressImage(file);
+                    await set(logoRef, base64);
+                    window.showToast('Logo updated successfully!', 'success');
+                    logoUrlInput.value = ''; // clear
+                } catch (err) {
+                    window.showToast(`Error: ${err.message}`, 'error');
+                } finally {
+                    saveLogoBtn.disabled = false;
+                    saveLogoBtn.innerText = "Upload Logo";
+                }
+            } else {
+                window.showToast('Please select an image file first.', 'error');
+            }
+        });
+
+        // --- Categories CRUD Module ---
+        const categoryForm = document.getElementById('categoryForm');
+        const cancelCatEditBtn = document.getElementById('cancelCatEditBtn');
+        const catFormTitle = document.getElementById('catFormTitle');
+        const catImgEditNotice = document.getElementById('catImgEditNotice');
+        const categoriesRef = ref(db, 'categories');
+        let currentEditingCatImageBase64 = null;
+
+        categoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('saveCatBtn');
+            submitBtn.disabled = true; submitBtn.innerText = "Saving...";
+
+            try {
+                const id = document.getElementById('categoryId').value;
+                const name = document.getElementById('cName').value;
+                const fileInput = document.getElementById('cImgFile');
+                let image = currentEditingCatImageBase64;
+
+                if (fileInput.files.length > 0) {
+                    image = await compressImage(fileInput.files[0]);
+                }
+
+                if (!image) {
+                    window.showToast("Please provide a category image.", "error");
+                    submitBtn.disabled = false; submitBtn.innerText = "Save Category"; return;
+                }
+
+                const catData = { name, image };
+                if (id) {
+                    await update(ref(db, `categories/${id}`), catData);
+                    window.showToast('Category updated', 'success');
+                } else {
+                    await push(categoriesRef, catData);
+                    window.showToast('Category added', 'success');
+                }
+                resetCatForm();
+            } catch (err) {
+                window.showToast(`Error: ${err.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false; submitBtn.innerText = "Save Category";
+            }
+        });
+
+        function resetCatForm() {
+            categoryForm.reset();
+            document.getElementById('categoryId').value = '';
+            document.getElementById('cImgFile').setAttribute('required', 'true');
+            currentEditingCatImageBase64 = null;
+            catImgEditNotice.style.display = 'none';
+            catFormTitle.innerText = 'Add New Category';
+            cancelCatEditBtn.classList.add('hidden');
+        }
+        cancelCatEditBtn.addEventListener('click', resetCatForm);
+
+        onValue(categoriesRef, (snapshot) => {
+            const tbody = document.getElementById('categoryTableBody');
+            const pCategory = document.getElementById('pCategory');
+            tbody.innerHTML = '';
+            pCategory.innerHTML = '<option value="" disabled selected>Select a Category</option>';
+            const data = snapshot.val();
+            if (!data) return;
+            window.categoryDataMap = data;
+
+            Object.entries(data).forEach(([id, cat]) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${cat.image}" alt="${cat.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;"></td>
+                    <td>${cat.name}</td>
+                    <td class="td-actions">
+                        <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; max-width: 80px;" onclick="editCategory('${id}')">Edit</button>
+                        <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; max-width: 80px;" onclick="deleteCategory('${id}')">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                const option = document.createElement('option');
+                option.value = id;
+                option.text = cat.name;
+                pCategory.appendChild(option);
+            });
+        });
+
+        window.editCategory = function(id) {
+            const cat = window.categoryDataMap[id];
+            if (!cat) return;
+            document.getElementById('categoryId').value = id;
+            document.getElementById('cName').value = cat.name;
+            currentEditingCatImageBase64 = cat.image;
+            document.getElementById('cImgFile').removeAttribute('required');
+            catImgEditNotice.style.display = 'block';
+            catFormTitle.innerText = 'Edit Category';
+            cancelCatEditBtn.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.deleteCategory = function(id) {
+            createDeleteToast('category', id);
+        };
+
+
+        // --- Products CRUD Module ---
+        const productForm = document.getElementById('productForm');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const formTitle = document.getElementById('formTitle');
+        const imgEditNotice = document.getElementById('imgEditNotice');
+        const productsRef = ref(db, 'products');
+        
+        let currentEditingImageBase64 = null;
+
+        productForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('saveProductBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Saving...";
+
+            try {
+                const id = document.getElementById('productId').value;
+                const name = document.getElementById('pName').value;
+                const desc = document.getElementById('pDesc').value;
+                const price = Number(document.getElementById('pPrice').value);
+                const stock = Number(document.getElementById('pStock').value);
+                const categoryId = document.getElementById('pCategory').value;
+                
+                const fileInput = document.getElementById('pImgFile');
+                let image = currentEditingImageBase64;
+
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    image = await compressImage(file);
+                }
+
+                if (!image) {
+                    window.showToast("Please provide an image.", "error");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Save Product";
+                    return;
+                }
+
+                const productData = { name, description: desc, image, price, stock, categoryId };
+
+                if (id) {
+                    await update(ref(db, `products/${id}`), productData);
+                    window.showToast('Product updated successfully', 'success');
+                } else {
+                    await push(productsRef, productData);
+                    window.showToast('Product added successfully', 'success');
+                }
+                resetForm();
+            } catch (err) {
+                window.showToast(`Error: ${err.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Save Product";
+            }
+        });
+
+        function resetForm() {
+            productForm.reset();
+            document.getElementById('pCategory').value = '';
+            document.getElementById('productId').value = '';
+            document.getElementById('pImgFile').setAttribute('required', 'true');
+            currentEditingImageBase64 = null;
+            imgEditNotice.style.display = 'none';
+            formTitle.innerText = 'Add New Product';
+            cancelEditBtn.classList.add('hidden');
+        }
+        cancelEditBtn.addEventListener('click', resetForm);
+
+        onValue(productsRef, (snapshot) => {
+            const tbody = document.getElementById('inventoryTableBody');
+            tbody.innerHTML = '';
+            const data = snapshot.val();
+            if (!data) return;
+
+            window.productDataMap = data;
+
+            Object.entries(data).forEach(([id, prod]) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${prod.image}" alt="${prod.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"></td>
+                    <td>${prod.name}</td>
+                    <td>₹${prod.price}</td>
+                    <td><span style="${prod.stock <= 0 ? 'color: var(--danger); font-weight: bold;' : ''}">${prod.stock}</span></td>
+                    <td class="td-actions">
+                        <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; max-width: 80px;" onclick="editProduct('${id}')">Edit</button>
+                        <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; max-width: 80px;" onclick="deleteProduct('${id}')">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+
+        window.editProduct = function(id) {
+            const prod = window.productDataMap[id];
+            if (!prod) return;
+            document.getElementById('productId').value = id;
+            document.getElementById('pName').value = prod.name;
+            document.getElementById('pDesc').value = prod.description;
+            document.getElementById('pPrice').value = prod.price;
+            document.getElementById('pStock').value = prod.stock;
+            if(prod.categoryId) document.getElementById('pCategory').value = prod.categoryId;
+            
+            currentEditingImageBase64 = prod.image;
+            document.getElementById('pImgFile').removeAttribute('required');
+            imgEditNotice.style.display = 'block';
+
+            formTitle.innerText = 'Edit Product';
+            cancelEditBtn.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.deleteProduct = function(id) {
+            createDeleteToast('product', id);
+        };
+
+        // Reusable Custom Confirm Delete Toast
+        function createDeleteToast(type, id) {
+            const confirmToast = document.createElement('div');
+            confirmToast.className = 'toast info show';
+            confirmToast.style.pointerEvents = 'auto';
+            confirmToast.innerHTML = `
+                <p style="margin-bottom: 1rem; color: white;">Are you sure you want to delete this ${type}?</p>
+                <div style="display:flex; justify-content: center; gap: 1rem;">
+                    <button class="btn btn-danger" id="confirmDelBtn" style="padding: 0.5rem 1rem; font-size: 0.8rem; border: none; max-width: 120px;">Yes, Delete</button>
+                    <button class="btn" id="cancelDelBtn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background: #555; color: white; max-width: 120px;">Cancel</button>
+                </div>
+            `;
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            container.appendChild(confirmToast);
+
+            document.getElementById('confirmDelBtn').addEventListener('click', () => {
+                const node = type === 'product' ? 'products' : 'categories';
+                remove(ref(db, `${node}/${id}`))
+                    .then(() => window.showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`, 'success'))
+                    .catch(err => window.showToast(`Error: ${err.message}`, 'error'));
+                confirmToast.remove();
+            });
+
+            document.getElementById('cancelDelBtn').addEventListener('click', () => {
+                confirmToast.remove();
+            });
+        }
+    </script>
+</body>
+</html>

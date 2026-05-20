@@ -43,12 +43,13 @@
         <section class="admin-card">
             <h3 style="margin-bottom: 1rem;">Store Branding</h3>
             <div style="display: flex; gap: 1rem; align-items: flex-end;">
-                <img id="currentLogoPreview" src="" alt="Current Logo" style="max-height: 50px; display: none; object-fit: contain;">
+                <img id="currentLogoPreview" src="" alt="Current Logo" style="width: 50px; height: 50px; display: none; object-fit: cover; border-radius: 50%;">
                 <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
                     <label for="logoUrlInput">Global Logo Image (Upload File)</label>
                     <input type="file" id="logoUrlInput" class="form-control" accept="image/*">
                 </div>
                 <button id="saveLogoBtn" class="btn btn-primary" style="max-width: 150px;">Upload Logo</button>
+                <button id="deleteLogoBtn" class="btn btn-danger hidden" style="max-width: 150px;">Delete Logo</button>
             </div>
         </section>
 
@@ -233,6 +234,7 @@
         // --- Branding / Logo Module ---
         const logoUrlInput = document.getElementById('logoUrlInput');
         const saveLogoBtn = document.getElementById('saveLogoBtn');
+        const deleteLogoBtn = document.getElementById('deleteLogoBtn');
         const logoPreview = document.getElementById('currentLogoPreview');
         const logoRef = ref(db, 'branding/logo');
 
@@ -240,6 +242,11 @@
             if (snapshot.exists()) {
                 logoPreview.src = snapshot.val();
                 logoPreview.style.display = 'block';
+                deleteLogoBtn.classList.remove('hidden');
+            } else {
+                logoPreview.style.display = 'none';
+                logoPreview.src = '';
+                deleteLogoBtn.classList.add('hidden');
             }
         });
 
@@ -261,6 +268,18 @@
                 }
             } else {
                 window.showToast('Please select an image file first.', 'error');
+            }
+        });
+
+        deleteLogoBtn.addEventListener('click', async () => {
+            const confirmDel = confirm("Are you sure you want to delete the logo?");
+            if (confirmDel) {
+                try {
+                    await remove(logoRef);
+                    window.showToast('Logo deleted successfully.', 'success');
+                } catch (err) {
+                    window.showToast(`Error: ${err.message}`, 'error');
+                }
             }
         });
 

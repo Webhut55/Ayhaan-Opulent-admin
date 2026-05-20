@@ -271,16 +271,8 @@
             }
         });
 
-        deleteLogoBtn.addEventListener('click', async () => {
-            const confirmDel = confirm("Are you sure you want to delete the logo?");
-            if (confirmDel) {
-                try {
-                    await remove(logoRef);
-                    window.showToast('Logo deleted successfully.', 'success');
-                } catch (err) {
-                    window.showToast(`Error: ${err.message}`, 'error');
-                }
-            }
+        deleteLogoBtn.addEventListener('click', () => {
+            createDeleteToast('logo', null);
         });
 
         // --- Categories CRUD Module ---
@@ -521,8 +513,14 @@
             container.appendChild(confirmToast);
 
             document.getElementById('confirmDelBtn').addEventListener('click', () => {
-                const node = type === 'product' ? 'products' : 'categories';
-                remove(ref(db, `${node}/${id}`))
+                let dbRef;
+                if (type === 'logo') {
+                    dbRef = ref(db, 'branding/logo');
+                } else {
+                    const node = type === 'product' ? 'products' : 'categories';
+                    dbRef = ref(db, `${node}/${id}`);
+                }
+                remove(dbRef)
                     .then(() => window.showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`, 'success'))
                     .catch(err => window.showToast(`Error: ${err.message}`, 'error'));
                 confirmToast.remove();

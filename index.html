@@ -5,13 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | Ayhaan Opulent</title>
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/style.css?v=2">
 </head>
-<link rel="stylesheet" href="./style.css"> 
-<script src="./admin.js"></script>
-
-<link rel="stylesheet" href="./css/style.css">
-<script src="./js/admin.js"></script>
 <body>
 
     <!-- Security Login Overlay -->
@@ -32,7 +27,7 @@
                 <span class="nav-logo-text">ADMIN PANEL</span>
             </div>
             <nav class="nav-links">
-                <a href="index.html" class="btn btn-outline">View Store</a>
+                <a href="ind.html" class="btn btn-outline">View Store</a>
             </nav>
         </div>
     </header>
@@ -50,6 +45,24 @@
                 </div>
                 <button id="saveLogoBtn" class="btn btn-primary" style="max-width: 150px;">Upload Logo</button>
                 <button id="deleteLogoBtn" class="btn btn-danger hidden" style="max-width: 150px;">Delete Logo</button>
+            </div>
+        </section>
+
+        <!-- Hero Content Module -->
+        <section class="admin-card">
+            <h3 style="margin-bottom: 1rem;">Hero Banner Settings</h3>
+            <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                <img id="currentHeroPreview" src="" alt="Hero Image" style="width: 100px; height: 60px; display: none; object-fit: cover; border-radius: 4px;">
+                <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
+                    <label for="heroImgInput">Hero Background Image</label>
+                    <input type="file" id="heroImgInput" class="form-control" accept="image/*">
+                </div>
+                <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
+                    <label for="heroTitleInput">Hero Title (e.g., Seasonal Elegance Sale)</label>
+                    <input type="text" id="heroTitleInput" class="form-control">
+                </div>
+                <button id="saveHeroBtn" class="btn btn-primary" style="max-width: 150px;">Save Hero</button>
+                <button id="deleteHeroBtn" class="btn btn-danger hidden" style="max-width: 150px;">Delete Hero</button>
             </div>
         </section>
 
@@ -273,6 +286,75 @@
 
         deleteLogoBtn.addEventListener('click', () => {
             createDeleteToast('logo', null);
+        });
+
+        // --- Hero Content Module ---
+        const heroImgInput = document.getElementById('heroImgInput');
+        const heroTitleInput = document.getElementById('heroTitleInput');
+        const saveHeroBtn = document.getElementById('saveHeroBtn');
+        const deleteHeroBtn = document.getElementById('deleteHeroBtn');
+        const heroPreview = document.getElementById('currentHeroPreview');
+        const heroRef = ref(db, 'branding/hero');
+
+        let currentHeroImgBase64 = null;
+
+        onValue(heroRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                let hasHero = false;
+                if(data.image) {
+                    heroPreview.src = data.image;
+                    heroPreview.style.display = 'block';
+                    currentHeroImgBase64 = data.image;
+                    hasHero = true;
+                } else {
+                    heroPreview.style.display = 'none';
+                    heroPreview.src = '';
+                    currentHeroImgBase64 = null;
+                }
+                if(data.title) {
+                    heroTitleInput.value = data.title;
+                    hasHero = true;
+                } else {
+                    heroTitleInput.value = '';
+                }
+                
+                if (hasHero) {
+                    deleteHeroBtn.classList.remove('hidden');
+                } else {
+                    deleteHeroBtn.classList.add('hidden');
+                }
+            } else {
+                heroPreview.style.display = 'none';
+                heroPreview.src = '';
+                heroTitleInput.value = '';
+                currentHeroImgBase64 = null;
+                deleteHeroBtn.classList.add('hidden');
+            }
+        });
+
+        saveHeroBtn.addEventListener('click', async () => {
+            saveHeroBtn.disabled = true;
+            saveHeroBtn.innerText = "Saving...";
+            try {
+                let image = currentHeroImgBase64;
+                if (heroImgInput.files.length > 0) {
+                    image = await compressImage(heroImgInput.files[0]);
+                }
+                const title = heroTitleInput.value;
+                await set(heroRef, { image, title });
+                window.showToast('Hero settings updated successfully!', 'success');
+                heroImgInput.value = '';
+            } catch (err) {
+                window.showToast(`Error: ${err.message}`, 'error');
+            } finally {
+                saveHeroBtn.disabled = false;
+                saveHeroBtn.innerText = "Save Hero";
+            }
+        });
+
+        deleteHeroBtn.addEventListener('click', () => {
+            createDeleteToast('hero', null);
         });
 
         // --- Categories CRUD Module ---
@@ -516,6 +598,8 @@
                 let dbRef;
                 if (type === 'logo') {
                     dbRef = ref(db, 'branding/logo');
+                } else if (type === 'hero') {
+                    dbRef = ref(db, 'branding/hero');
                 } else {
                     const node = type === 'product' ? 'products' : 'categories';
                     dbRef = ref(db, `${node}/${id}`);

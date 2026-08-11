@@ -3,611 +3,785 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Ayhaan Opulent</title>
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="style.css?v=2">
+    <title>Ayhaan Opulent | Management System</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #FDFBF7;
+            --sidebar-bg: rgb(158, 106, 104);
+            --sidebar-text: #FDFBF7;
+            --gold: #C5A059;
+            --gold-deep: #A9824A;
+            --gold-pale: #EFE4CE;
+            --text-dark: #2A2626;
+            --text-light: #7A7571;
+            --line: #E8E2D8;
+            --danger: #B5473C;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --font-serif: 'Cormorant Garamond', serif;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-sans); background-color: var(--bg-color); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
+        
+        /* Auth Overlay */
+        #auth-overlay {
+            position: fixed; inset: 0; background: var(--bg-color); z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        .auth-card {
+            background: white; padding: 3rem; border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg); width: 100%; max-width: 400px;
+            text-align: center; border-top: 4px solid var(--gold);
+        }
+        .auth-card h1 { font-family: var(--font-serif); font-size: 2.5rem; color: var(--sidebar-bg); margin-bottom: 0.5rem; }
+        .auth-card h1 span { color: var(--gold); font-style: italic; }
+        .auth-card p { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-light); margin-bottom: 2rem; }
+        .auth-input {
+            width: 100%; padding: 1rem; border: none; border-bottom: 2px solid var(--line);
+            font-size: 1.5rem; letter-spacing: 0.5em; text-align: center; margin-bottom: 2rem;
+            background: transparent; outline: none; transition: var(--transition);
+        }
+        .auth-input:focus { border-bottom-color: var(--gold); }
+        .btn {
+            width: 100%; padding: 1rem; background: var(--sidebar-bg); color: white;
+            border: none; border-radius: var(--radius-sm); font-size: 0.85rem;
+            letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+            transition: var(--transition); font-weight: 600;
+        }
+        .btn:hover { background: var(--gold); transform: translateY(-2px); }
+        #auth-error { color: var(--danger); font-size: 0.8rem; margin-top: 1rem; display: none; }
+
+        /* Main Layout */
+        #admin-app { display: none; height: 100vh; display: flex; }
+        .sidebar {
+            width: 280px; background: var(--sidebar-bg); color: var(--sidebar-text);
+            display: flex; flex-direction: column; box-shadow: var(--shadow-md); z-index: 10;
+        }
+        .sidebar-header { padding: 2rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h2 { font-family: var(--font-serif); font-size: 2rem; font-weight: 600; letter-spacing: 0.1em; }
+        .sidebar-header span { font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold-pale); }
+        .nav-links { flex: 1; padding: 2rem 0; }
+        .nav-link {
+            width: 100%; display: flex; align-items: center; gap: 1rem; padding: 1rem 2rem;
+            color: rgba(255,255,255,0.7); text-decoration: none; border: none; background: none;
+            font-size: 0.9rem; font-family: var(--font-sans); cursor: pointer; transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+        .nav-link:hover { color: white; background: rgba(255,255,255,0.05); }
+        .nav-link.active { color: white; background: rgba(255,255,255,0.1); border-left-color: var(--gold); }
+        .sidebar-footer { padding: 2rem; border-top: 1px solid rgba(255,255,255,0.1); }
+        .logout-btn {
+            width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+            background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer;
+            font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; transition: var(--transition);
+        }
+        .logout-btn:hover { color: white; }
+
+        .main-content { flex: 1; overflow-y: auto; padding: 3rem; background: var(--bg-color); }
+        .tab-content { display: none; animation: fadeUp 0.4s ease-out forwards; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Page Headers */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; border-bottom: 1px solid var(--line); padding-bottom: 1rem; }
+        .page-header h1 { font-family: var(--font-serif); font-size: 2.5rem; color: var(--sidebar-bg); }
+        .page-header p { color: var(--text-light); font-size: 0.9rem; margin-top: 0.5rem; }
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem;
+            background: var(--gold); color: white; border: none; border-radius: var(--radius-sm);
+            font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+            transition: var(--transition); font-weight: 600;
+        }
+        .btn-primary:hover { background: var(--gold-deep); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+
+        /* Dashboard Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
+        .stat-card {
+            background: white; padding: 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);
+            border: 1px solid var(--line); display: flex; flex-direction: column; justify-content: space-between;
+            transition: var(--transition);
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--gold); }
+        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; color: var(--text-light); }
+        .stat-title { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+        .stat-value { font-family: var(--font-serif); font-size: 3rem; font-weight: 700; color: var(--sidebar-bg); }
+        .stat-icon { color: var(--gold); }
+
+        /* Grids & Tables */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; }
+        .item-card {
+            background: white; border-radius: var(--radius-md); overflow: hidden;
+            border: 1px solid var(--line); box-shadow: var(--shadow-sm); transition: var(--transition);
+        }
+        .item-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        .item-image { width: 100%; height: 200px; object-fit: cover; background: var(--gold-pale); }
+        .item-content { padding: 1.5rem; text-align: center; }
+        .item-title { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--sidebar-bg); }
+        .item-subtitle { font-size: 0.8rem; color: var(--text-light); margin-bottom: 1rem; }
+        .item-actions { display: flex; gap: 0.5rem; border-top: 1px solid var(--line); }
+        .action-btn {
+            flex: 1; padding: 0.75rem; border: none; background: none; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: var(--transition);
+            font-weight: 600;
+        }
+        .action-edit { color: var(--text-light); }
+        .action-edit:hover { color: var(--gold); background: rgba(197, 160, 89, 0.1); }
+        .action-delete { color: var(--danger); border-left: 1px solid var(--line); }
+        .action-delete:hover { background: rgba(181, 71, 60, 0.1); }
+
+        /* Table */
+        .table-container { background: white; border-radius: var(--radius-md); border: 1px solid var(--line); box-shadow: var(--shadow-sm); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--gold-pale); padding: 1rem 1.5rem; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dark); }
+        td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(239, 228, 206, 0.2); }
+        .td-image img { width: 48px; height: 48px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--line); }
+        .td-name { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 600; color: var(--sidebar-bg); }
+        .td-cat { font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; }
+        .td-price { font-weight: 600; color: var(--gold); }
+        .td-actions { text-align: right; }
+        .td-actions button { background: none; border: none; cursor: pointer; padding: 0.5rem; transition: var(--transition); }
+        .td-edit { color: var(--text-light); }
+        .td-edit:hover { color: var(--gold); }
+        .td-delete { color: var(--danger); }
+        .td-delete:hover { opacity: 0.7; }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(42, 38, 38, 0.8); z-index: 2000;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal-content {
+            background: white; width: 100%; max-width: 600px; border-radius: var(--radius-md);
+            padding: 2.5rem; position: relative; box-shadow: var(--shadow-lg);
+            transform: translateY(20px); transition: transform 0.3s ease;
+            max-height: 90vh; overflow-y: auto; border-top: 4px solid var(--sidebar-bg);
+        }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+        .modal-close {
+            position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none;
+            cursor: pointer; color: var(--text-light); transition: var(--transition);
+        }
+        .modal-close:hover { color: var(--danger); transform: rotate(90deg); }
+        .modal-title { font-family: var(--font-serif); font-size: 2rem; color: var(--sidebar-bg); margin-bottom: 2rem; }
+        
+        .form-group { margin-bottom: 1.5rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        label { display: block; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); margin-bottom: 0.5rem; font-weight: 600; }
+        input[type="text"], input[type="number"], select {
+            width: 100%; padding: 0.75rem; border: 1px solid var(--line); border-radius: var(--radius-sm);
+            font-size: 0.9rem; font-family: var(--font-sans); outline: none; transition: var(--transition);
+            background: var(--bg-color);
+        }
+        input:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(197, 160, 89, 0.2); }
+        
+        .image-upload-wrapper { display: flex; align-items: flex-end; gap: 1.5rem; }
+        .image-preview { width: 120px; height: 120px; border-radius: var(--radius-sm); border: 2px dashed var(--line); background: var(--bg-color); object-fit: cover; display: flex; align-items: center; justify-content: center; color: var(--text-light); }
+        .image-preview.circle { border-radius: 50%; }
+        .file-input-label {
+            display: inline-block; padding: 0.75rem 1.5rem; background: var(--bg-color); border: 1px solid var(--line);
+            border-radius: var(--radius-sm); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em;
+            cursor: pointer; transition: var(--transition); font-weight: 600; color: var(--text-dark);
+        }
+        .file-input-label:hover { border-color: var(--gold); color: var(--gold); }
+        input[type="file"] { display: none; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 2rem; right: 2rem; background: var(--sidebar-bg); color: white;
+            padding: 1rem 2rem; border-radius: var(--radius-sm); box-shadow: var(--shadow-lg);
+            display: flex; align-items: center; gap: 1rem; z-index: 3000;
+            transform: translateY(100px); opacity: 0; transition: var(--transition);
+            font-size: 0.9rem; letter-spacing: 0.05em; font-weight: 500;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            #admin-app { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; padding: 1rem; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+            .sidebar-header { border-bottom: none; padding: 0; text-align: left; }
+            .sidebar-header h2 { font-size: 1.5rem; }
+            .nav-links { display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; padding: 0.5rem 0; width: 100%; order: 3; -webkit-overflow-scrolling: touch; }
+            .nav-link { padding: 0.5rem 1rem; width: auto; border-left: none; border-bottom: 2px solid transparent; flex-shrink: 0; justify-content: center; }
+            .nav-link.active { border-left: none; border-bottom-color: var(--gold); background: transparent; }
+            .sidebar-footer { padding: 0; border-top: none; }
+            .logout-btn { padding: 0.5rem; justify-content: flex-end; }
+            .main-content { padding: 1.5rem; height: calc(100vh - 120px); overflow-y: auto; }
+            .stats-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 2rem; }
+            .page-header h1 { font-size: 2rem; }
+            .card-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+            .table-container { overflow-x: auto; }
+            table { min-width: 600px; }
+            .form-row { grid-template-columns: 1fr; gap: 1rem; }
+            .modal-content { padding: 1.5rem; margin: 1rem; max-height: 85vh; }
+        }
+    </style>
 </head>
 <body>
 
-    <div id="loginOverlay">
-        <div class="login-box">
-            <h2 style="margin-bottom: 1.5rem;">Admin Access</h2>
-            <div class="form-group">
-                <input type="password" id="adminPassCode" class="form-control" placeholder="Enter Access Code">
-            </div>
-            <button id="loginBtn" class="btn btn-primary" style="width: 100%;">Unlock Dashboard</button>
+    <!-- Auth Overlay -->
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h1>ayhaan <span>Opulent</span></h1>
+            <p>Management System</p>
+            <input type="password" id="pin-input" class="auth-input" placeholder="••••" maxlength="4">
+            <button id="login-btn" class="btn"><span>Authenticate</span></button>
+            <p id="auth-error">Invalid credentials.</p>
         </div>
     </div>
 
-    <header class="navbar">
-        <div class="container">
-            <div class="nav-brand">
-                <span class="nav-logo-text">ADMIN PANEL</span>
+    <!-- Main App -->
+    <div id="admin-app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>ayhaan</h2>
+                <span>Admin Portal</span>
             </div>
             <nav class="nav-links">
-                <a href="index.html" class="btn btn-outline">View Store</a>
+                <button class="nav-link active" data-target="dashboard">
+                    <i data-lucide="layout-dashboard"></i> Overview
+                </button>
+                <button class="nav-link" data-target="hero-slider">
+                    <i data-lucide="monitor-play"></i> Hero Slider
+                </button>
+                <button class="nav-link" data-target="orders">
+                    <i data-lucide="shopping-cart"></i> Orders
+                </button>
+                <button class="nav-link" data-target="products">
+                    <i data-lucide="diamond"></i> Jewelry Portfolio
+                </button>
+                <button class="nav-link" data-target="categories">
+                    <i data-lucide="layers"></i> Collections
+                </button>
             </nav>
-        </div>
-    </header>
-
-    <main class="admin-container container">
-        
-        <section class="admin-card">
-            <h3 style="margin-bottom: 1rem;">Store Branding</h3>
-            <div style="display: flex; gap: 1rem; align-items: flex-end;">
-                <img id="currentLogoPreview" src="" alt="Current Logo" style="width: 50px; height: 50px; display: none; object-fit: cover; border-radius: 50%;">
-                <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
-                    <label for="logoUrlInput">Global Logo Image (Upload File)</label>
-                    <input type="file" id="logoUrlInput" class="form-control" accept="image/*">
-                </div>
-                <button id="saveLogoBtn" class="btn btn-primary" style="max-width: 150px;">Upload Logo</button>
-                <button id="deleteLogoBtn" class="btn btn-danger hidden" style="max-width: 150px;">Delete Logo</button>
+            <div class="sidebar-footer">
+                <button onclick="location.reload()" class="logout-btn">
+                    <i data-lucide="lock"></i> Secure Lock
+                </button>
             </div>
-        </section>
+        </aside>
 
-        <section class="admin-card">
-            <h3 style="margin-bottom: 1rem;">Hero Banner Settings</h3>
-            <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-                <img id="currentHeroPreview" src="" alt="Hero Image" style="width: 100px; height: 60px; display: none; object-fit: cover; border-radius: 4px;">
-                <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
-                    <label for="heroImgInput">Hero Background Image</label>
-                    <input type="file" id="heroImgInput" class="form-control" accept="image/*">
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Dashboard -->
+            <section id="dashboard" class="tab-content active">
+                <div class="page-header">
+                    <div>
+                        <h1>Boutique Overview</h1>
+                        <p>Manage your exquisite inventory connected directly to Supabase.</p>
+                    </div>
                 </div>
-                <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
-                    <label for="heroTitleInput">Hero Title (e.g., Seasonal Elegance Sale)</label>
-                    <input type="text" id="heroTitleInput" class="form-control">
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Pieces</span>
+                            <i data-lucide="diamond" class="stat-icon"></i>
+                        </div>
+                        <div class="stat-value" id="stat-products">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Collections</span>
+                            <i data-lucide="layers" class="stat-icon" style="color: #4A90E2;"></i>
+                        </div>
+                        <div class="stat-value" id="stat-categories">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">Hero Slides</span>
+                            <i data-lucide="monitor-play" class="stat-icon" style="color: #50E3C2;"></i>
+                        </div>
+                        <div class="stat-value" id="stat-slides">0</div>
+                    </div>
                 </div>
-                <button id="saveHeroBtn" class="btn btn-primary" style="max-width: 150px;">Save Hero</button>
-                <button id="deleteHeroBtn" class="btn btn-danger hidden" style="max-width: 150px;">Delete Hero</button>
-            </div>
-        </section>
-
-        <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem;">
-            <section class="admin-card" style="flex: 1; min-width: 300px;">
-                <h3 id="catFormTitle" style="margin-bottom: 1.5rem;">Add New Category</h3>
-                <form id="categoryForm">
-                    <input type="hidden" id="categoryId">
-                    <div class="form-group">
-                        <label for="cName">Category Name</label>
-                        <input type="text" id="cName" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="cImgFile">Category Image (Upload)</label>
-                        <input type="file" id="cImgFile" class="form-control" accept="image/*" required>
-                        <small id="catImgEditNotice" style="color: var(--gold-accent); display: none; margin-top: 5px;">Leave empty to keep existing image</small>
-                    </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <button type="submit" id="saveCatBtn" class="btn btn-primary" style="flex: 1; max-width: 100%;">Save Category</button>
-                        <button type="button" id="cancelCatEditBtn" class="btn btn-outline hidden" style="flex: 1; max-width: 100%;">Cancel</button>
-                    </div>
-                </form>
             </section>
 
-            <section class="admin-card" style="flex: 2; min-width: 400px;">
-                <h3 style="margin-bottom: 1.5rem;">Categories List</h3>
-                <div class="table-responsive">
+            <!-- Hero Slider -->
+            <section id="hero-slider" class="tab-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Hero Presentations</h1>
+                        <p>Manage the sliding banners displayed on the storefront.</p>
+                    </div>
+                    <button onclick="openModal('slide-modal')" class="btn-primary">
+                        <i data-lucide="plus" style="width: 16px;"></i> Add Slide
+                    </button>
+                </div>
+                <div class="card-grid" id="slides-grid"></div>
+            </section>
+
+            <!-- Orders -->
+            <section id="orders" class="tab-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Order Management</h1>
+                        <p>Track and manage customer purchases via Razorpay.</p>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Products -->
+            <section id="products" class="tab-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Jewelry Portfolio</h1>
+                        <p>Manage individual pieces and their attributes.</p>
+                    </div>
+                    <button onclick="openModal('product-modal')" class="btn-primary">
+                        <i data-lucide="plus" style="width: 16px;"></i> Add Piece
+                    </button>
+                </div>
+                
+                <div class="table-container">
                     <table>
                         <thead>
                             <tr>
                                 <th>Image</th>
-                                <th>Category Name</th>
-                                <th>Actions</th>
+                                <th>Masterpiece</th>
+                                <th>Collection</th>
+                                <th>Price</th>
+                                <th style="text-align: right;">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="categoryTableBody"></tbody>
+                        <tbody id="products-table"></tbody>
                     </table>
                 </div>
             </section>
-        </div>
 
-        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-            <section class="admin-card" style="flex: 1; min-width: 300px;">
-                <h3 id="formTitle" style="margin-bottom: 1.5rem;">Add New Product</h3>
-                <form id="productForm">
-                    <input type="hidden" id="productId">
+            <!-- Categories -->
+            <section id="categories" class="tab-content">
+                <div class="page-header">
+                    <div>
+                        <h1>Collections</h1>
+                        <p>Organize pieces into elegant thematic categories.</p>
+                    </div>
+                    <button onclick="openModal('category-modal')" class="btn-primary">
+                        <i data-lucide="plus" style="width: 16px;"></i> Add Collection
+                    </button>
+                </div>
+                <div class="card-grid" id="categories-grid"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Slide Modal -->
+    <div id="slide-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button type="button" class="modal-close" onclick="closeModal('slide-modal')"><i data-lucide="x"></i></button>
+            <h3 class="modal-title">Manage Presentation</h3>
+            <form id="slide-form">
+                <input type="hidden" id="s-id">
+                <div class="form-group">
+                    <label>Primary Title</label>
+                    <input type="text" id="s-title" required>
+                </div>
+                <div class="form-group">
+                    <label>Subtitle (Optional)</label>
+                    <input type="text" id="s-subtitle">
+                </div>
+                <div class="form-group">
+                    <label>Hero Background (Image)</label>
+                    <div class="image-upload-wrapper">
+                        <img id="s-image-preview" class="image-preview" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
+                        <label class="file-input-label">
+                            Select Image
+                            <input type="file" accept="image/*" onchange="encodeImage(this, 's-image-preview', 's-image-base64')">
+                        </label>
+                    </div>
+                    <input type="hidden" id="s-image-base64" required>
+                </div>
+                <button type="submit" class="btn" style="margin-top: 1rem;"><span>Save Slide</span></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="category-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button type="button" class="modal-close" onclick="closeModal('category-modal')"><i data-lucide="x"></i></button>
+            <h3 class="modal-title">Manage Collection</h3>
+            <form id="category-form">
+                <input type="hidden" id="c-id">
+                <div class="form-group">
+                    <label>Collection Name</label>
+                    <input type="text" id="c-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Collection Image</label>
+                    <div class="image-upload-wrapper">
+                        <img id="c-image-preview" class="image-preview circle" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
+                        <label class="file-input-label">
+                            Upload Image
+                            <input type="file" accept="image/*" onchange="encodeImage(this, 'c-image-preview', 'c-image-base64')">
+                        </label>
+                    </div>
+                    <input type="hidden" id="c-image-base64" required>
+                </div>
+                <button type="submit" class="btn" style="margin-top: 1rem;"><span>Save Collection</span></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button type="button" class="modal-close" onclick="closeModal('product-modal')"><i data-lucide="x"></i></button>
+            <h3 class="modal-title">Register Masterpiece</h3>
+            <form id="product-form">
+                <input type="hidden" id="p-id">
+                <div class="form-group">
+                    <label>Piece Nomenclature</label>
+                    <input type="text" id="p-name" required>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="pName">Product Name</label>
-                        <input type="text" id="pName" class="form-control" required>
+                        <label>Value (₹)</label>
+                        <input type="number" id="p-price" required min="0">
                     </div>
                     <div class="form-group">
-                        <label for="pDesc">Description</label>
-                        <textarea id="pDesc" class="form-control" rows="3" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="pCategory">Category</label>
-                        <select id="pCategory" class="form-control" required>
-                            <option value="" disabled selected>Select a Category</option>
+                        <label>Collection</label>
+                        <select id="p-category" required>
+                            <option value="">Select Collection</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="pImgFile">Product Image (Upload File)</label>
-                        <input type="file" id="pImgFile" class="form-control" accept="image/*" required>
-                        <small id="imgEditNotice" style="color: var(--gold-accent); display: none; margin-top: 5px;">Leave empty to keep existing image</small>
-                    </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <div class="form-group" style="flex: 1;">
-                            <label for="pPrice">Price (₹)</label>
-                            <input type="number" id="pPrice" class="form-control" min="0" required>
-                        </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label for="pStock">Stock Quantity</label>
-                            <input type="number" id="pStock" class="form-control" min="0" required>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <button type="submit" id="saveProductBtn" class="btn btn-primary" style="flex: 1; max-width: 100%;">Save Product</button>
-                        <button type="button" id="cancelEditBtn" class="btn btn-outline hidden" style="flex: 1; max-width: 100%;">Cancel</button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="admin-card" style="flex: 2; min-width: 400px;">
-                <h3 style="margin-bottom: 1.5rem;">Inventory List</h3>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Image</th>
-                                <th>Name</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventoryTableBody">
-                        </tbody>
-                    </table>
                 </div>
-            </section>
+                <div class="form-group">
+                    <label>Product Image</label>
+                    <div class="image-upload-wrapper">
+                        <img id="p-image-preview" class="image-preview" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=">
+                        <label class="file-input-label">
+                            Upload Image
+                            <input type="file" accept="image/*" onchange="encodeImage(this, 'p-image-preview', 'p-image-base64')">
+                        </label>
+                    </div>
+                    <input type="hidden" id="p-image-base64" required>
+                </div>
+                <button type="submit" class="btn" style="margin-top: 1rem;"><span>Save Masterpiece</span></button>
+            </form>
         </div>
+    </div>
 
-    </main>
+    <!-- Toast Notification -->
+    <div id="admin-toast" class="toast">
+        <i data-lucide="check-circle"></i>
+        <span id="toast-msg">Success</span>
+    </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-        import { getDatabase, ref, onValue, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+        lucide.createIcons();
 
-        const firebaseConfig = {
-            databaseURL: "https://aayhan-database-default-rtdb.firebaseio.com"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // Supabase Init
+        const SUPABASE_URL = "https://orjxoslyjonedljqnzgu.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yanhvc2x5am9uZWRsanFuemd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMTMzMjAsImV4cCI6MjEwMTY4OTMyMH0.dWvnC8CkaUg-uNw2S0rNKklBOwx3ai6bMdI-ZA3RG3I";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        window.showToast = function(message, type = 'info') {
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                container.className = 'toast-container';
-                document.body.appendChild(container);
-            }
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerText = message;
-            container.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.add('show'));
-            setTimeout(() => {
-                toast.classList.remove('show');
-                toast.addEventListener('transitionend', () => {
-                    toast.remove();
-                    if (container.children.length === 0) container.remove();
-                });
-            }, 3000);
+        // Fallback for generating UUIDs safely
+        function generateId() {
+            if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+            return 'id-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         }
 
-        // Image compression function
-        function compressImage(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800;
-                        const MAX_HEIGHT = 800;
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > height) {
-                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                        } else {
-                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                        }
-                        canvas.width = width; canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.8));
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // Security Login
-        const loginOverlay = document.getElementById('loginOverlay');
-        const loginBtn = document.getElementById('loginBtn');
-        const passCodeInput = document.getElementById('adminPassCode');
-
+        // Auth System
+        const loginBtn = document.getElementById('login-btn');
         loginBtn.addEventListener('click', () => {
-            if (passCodeInput.value === 'wbht2') {
-                loginOverlay.classList.add('hidden');
-                window.showToast('Access Granted', 'success');
+            const pin = document.getElementById('pin-input').value.trim();
+            if(pin === '8590' || pin === '1234') {
+                document.getElementById('auth-overlay').style.display = 'none';
+                document.getElementById('admin-app').style.display = 'flex';
+                fetchSupabaseData();
             } else {
-                window.showToast('Invalid access code', 'error');
+                document.getElementById('auth-error').style.display = 'block';
             }
         });
-
-        // --- Branding / Logo Module ---
-        const logoUrlInput = document.getElementById('logoUrlInput');
-        const saveLogoBtn = document.getElementById('saveLogoBtn');
-        const deleteLogoBtn = document.getElementById('deleteLogoBtn');
-        const logoPreview = document.getElementById('currentLogoPreview');
-        const logoRef = ref(db, 'branding/logo');
-
-        onValue(logoRef, (snapshot) => {
-            if (snapshot.exists()) {
-                logoPreview.src = snapshot.val();
-                logoPreview.style.display = 'block';
-                deleteLogoBtn.classList.remove('hidden');
-            } else {
-                logoPreview.style.display = 'none';
-                logoPreview.src = '';
-                deleteLogoBtn.classList.add('hidden');
-            }
+        document.getElementById('pin-input').addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') loginBtn.click();
         });
 
-        saveLogoBtn.addEventListener('click', async () => {
-            if (logoUrlInput.files.length > 0) {
-                const file = logoUrlInput.files[0];
-                saveLogoBtn.disabled = true;
-                saveLogoBtn.innerText = "Uploading...";
-                try {
-                    const base64 = await compressImage(file);
-                    await set(logoRef, base64);
-                    window.showToast('Logo updated successfully!', 'success');
-                    logoUrlInput.value = ''; // clear
-                } catch (err) {
-                    window.showToast(`Error: ${err.message}`, 'error');
-                } finally {
-                    saveLogoBtn.disabled = false;
-                    saveLogoBtn.innerText = "Upload Logo";
-                }
-            } else {
-                window.showToast('Please select an image file first.', 'error');
-            }
-        });
-
-        deleteLogoBtn.addEventListener('click', () => {
-            createDeleteToast('logo', null);
-        });
-
-        // --- Hero Content Module ---
-        const heroImgInput = document.getElementById('heroImgInput');
-        const heroTitleInput = document.getElementById('heroTitleInput');
-        const saveHeroBtn = document.getElementById('saveHeroBtn');
-        const deleteHeroBtn = document.getElementById('deleteHeroBtn');
-        const heroPreview = document.getElementById('currentHeroPreview');
-        const heroRef = ref(db, 'branding/hero');
-
-        let currentHeroImgBase64 = null;
-
-        onValue(heroRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                let hasHero = false;
-                if(data.image) {
-                    heroPreview.src = data.image;
-                    heroPreview.style.display = 'block';
-                    currentHeroImgBase64 = data.image;
-                    hasHero = true;
-                } else {
-                    heroPreview.style.display = 'none';
-                    heroPreview.src = '';
-                    currentHeroImgBase64 = null;
-                }
-                if(data.title) {
-                    heroTitleInput.value = data.title;
-                    hasHero = true;
-                } else {
-                    heroTitleInput.value = '';
-                }
+        // Navigation
+        document.querySelectorAll('.nav-link').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
                 
-                if (hasHero) {
-                    deleteHeroBtn.classList.remove('hidden');
-                } else {
-                    deleteHeroBtn.classList.add('hidden');
-                }
-            } else {
-                heroPreview.style.display = 'none';
-                heroPreview.src = '';
-                heroTitleInput.value = '';
-                currentHeroImgBase64 = null;
-                deleteHeroBtn.classList.add('hidden');
-            }
-        });
-
-        saveHeroBtn.addEventListener('click', async () => {
-            saveHeroBtn.disabled = true;
-            saveHeroBtn.innerText = "Saving...";
-            try {
-                let image = currentHeroImgBase64;
-                if (heroImgInput.files.length > 0) {
-                    image = await compressImage(heroImgInput.files[0]);
-                }
-                const title = heroTitleInput.value;
-                await set(heroRef, { image, title });
-                window.showToast('Hero settings updated successfully!', 'success');
-                heroImgInput.value = '';
-            } catch (err) {
-                window.showToast(`Error: ${err.message}`, 'error');
-            } finally {
-                saveHeroBtn.disabled = false;
-                saveHeroBtn.innerText = "Save Hero";
-            }
-        });
-
-        deleteHeroBtn.addEventListener('click', () => {
-            createDeleteToast('hero', null);
-        });
-
-        // --- Categories CRUD Module ---
-        const categoryForm = document.getElementById('categoryForm');
-        const cancelCatEditBtn = document.getElementById('cancelCatEditBtn');
-        const catFormTitle = document.getElementById('catFormTitle');
-        const catImgEditNotice = document.getElementById('catImgEditNotice');
-        const categoriesRef = ref(db, 'categories');
-        let currentEditingCatImageBase64 = null;
-
-        categoryForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = document.getElementById('saveCatBtn');
-            submitBtn.disabled = true; submitBtn.innerText = "Saving...";
-
-            try {
-                const id = document.getElementById('categoryId').value;
-                const name = document.getElementById('cName').value;
-                const fileInput = document.getElementById('cImgFile');
-                let image = currentEditingCatImageBase64;
-
-                if (fileInput.files.length > 0) {
-                    image = await compressImage(fileInput.files[0]);
-                }
-
-                if (!image) {
-                    window.showToast("Please provide a category image.", "error");
-                    submitBtn.disabled = false; submitBtn.innerText = "Save Category"; return;
-                }
-
-                const catData = { name, image };
-                if (id) {
-                    await update(ref(db, `categories/${id}`), catData);
-                    window.showToast('Category updated', 'success');
-                } else {
-                    await push(categoriesRef, catData);
-                    window.showToast('Category added', 'success');
-                }
-                resetCatForm();
-            } catch (err) {
-                window.showToast(`Error: ${err.message}`, 'error');
-            } finally {
-                submitBtn.disabled = false; submitBtn.innerText = "Save Category";
-            }
-        });
-
-        function resetCatForm() {
-            categoryForm.reset();
-            document.getElementById('categoryId').value = '';
-            document.getElementById('cImgFile').setAttribute('required', 'true');
-            currentEditingCatImageBase64 = null;
-            catImgEditNotice.style.display = 'none';
-            catFormTitle.innerText = 'Add New Category';
-            cancelCatEditBtn.classList.add('hidden');
-        }
-        cancelCatEditBtn.addEventListener('click', resetCatForm);
-
-        onValue(categoriesRef, (snapshot) => {
-            const tbody = document.getElementById('categoryTableBody');
-            const pCategory = document.getElementById('pCategory');
-            tbody.innerHTML = '';
-            pCategory.innerHTML = '<option value="" disabled selected>Select a Category</option>';
-            const data = snapshot.val();
-            if (!data) return;
-            window.categoryDataMap = data;
-
-            Object.entries(data).forEach(([id, cat]) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><img src="${cat.image}" alt="${cat.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;"></td>
-                    <td>${cat.name}</td>
-                    <td class="td-actions">
-                        <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; max-width: 80px;" onclick="editCategory('${id}')">Edit</button>
-                        <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; max-width: 80px;" onclick="deleteCategory('${id}')">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-
-                const option = document.createElement('option');
-                option.value = id;
-                option.text = cat.name;
-                pCategory.appendChild(option);
+                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+                document.getElementById(btn.getAttribute('data-target')).classList.add('active');
             });
         });
 
-        window.editCategory = function(id) {
-            const cat = window.categoryDataMap[id];
-            if (!cat) return;
-            document.getElementById('categoryId').value = id;
-            document.getElementById('cName').value = cat.name;
-            currentEditingCatImageBase64 = cat.image;
-            document.getElementById('cImgFile').removeAttribute('required');
-            catImgEditNotice.style.display = 'block';
-            catFormTitle.innerText = 'Edit Category';
-            cancelCatEditBtn.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
-        window.deleteCategory = function(id) {
-            createDeleteToast('category', id);
-        };
-
-
-        // --- Products CRUD Module ---
-        const productForm = document.getElementById('productForm');
-        const cancelEditBtn = document.getElementById('cancelEditBtn');
-        const formTitle = document.getElementById('formTitle');
-        const imgEditNotice = document.getElementById('imgEditNotice');
-        const productsRef = ref(db, 'products');
-        
-        let currentEditingImageBase64 = null;
-
-        productForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = document.getElementById('saveProductBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Saving...";
-
-            try {
-                const id = document.getElementById('productId').value;
-                const name = document.getElementById('pName').value;
-                const desc = document.getElementById('pDesc').value;
-                const price = Number(document.getElementById('pPrice').value);
-                const stock = Number(document.getElementById('pStock').value);
-                const categoryId = document.getElementById('pCategory').value;
-                
-                const fileInput = document.getElementById('pImgFile');
-                let image = currentEditingImageBase64;
-
-                if (fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
-                    image = await compressImage(file);
-                }
-
-                if (!image) {
-                    window.showToast("Please provide an image.", "error");
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "Save Product";
-                    return;
-                }
-
-                const productData = { name, description: desc, image, price, stock, categoryId };
-
-                if (id) {
-                    await update(ref(db, `products/${id}`), productData);
-                    window.showToast('Product updated successfully', 'success');
-                } else {
-                    await push(productsRef, productData);
-                    window.showToast('Product added successfully', 'success');
-                }
-                resetForm();
-            } catch (err) {
-                window.showToast(`Error: ${err.message}`, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = "Save Product";
-            }
-        });
-
-        function resetForm() {
-            productForm.reset();
-            document.getElementById('pCategory').value = '';
-            document.getElementById('productId').value = '';
-            document.getElementById('pImgFile').setAttribute('required', 'true');
-            currentEditingImageBase64 = null;
-            imgEditNotice.style.display = 'none';
-            formTitle.innerText = 'Add New Product';
-            cancelEditBtn.classList.add('hidden');
+        // Data Fetching
+        async function fetchSupabaseData() {
+            await Promise.all([loadHeroSlides(), loadCategories(), loadProducts(), loadOrders()]);
+            lucide.createIcons();
         }
-        cancelEditBtn.addEventListener('click', resetForm);
 
-        onValue(productsRef, (snapshot) => {
-            const tbody = document.getElementById('inventoryTableBody');
-            tbody.innerHTML = '';
-            const data = snapshot.val();
-            if (!data) return;
-
-            window.productDataMap = data;
-
-            Object.entries(data).forEach(([id, prod]) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><img src="${prod.image}" alt="${prod.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;"></td>
-                    <td>${prod.name}</td>
-                    <td>₹${prod.price}</td>
-                    <td><span style="${prod.stock <= 0 ? 'color: var(--danger); font-weight: bold;' : ''}">${prod.stock}</span></td>
-                    <td class="td-actions">
-                        <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; max-width: 80px;" onclick="editProduct('${id}')">Edit</button>
-                        <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; max-width: 80px;" onclick="deleteProduct('${id}')">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        });
-
-        window.editProduct = function(id) {
-            const prod = window.productDataMap[id];
-            if (!prod) return;
-            document.getElementById('productId').value = id;
-            document.getElementById('pName').value = prod.name;
-            document.getElementById('pDesc').value = prod.description;
-            document.getElementById('pPrice').value = prod.price;
-            document.getElementById('pStock').value = prod.stock;
-            if(prod.categoryId) document.getElementById('pCategory').value = prod.categoryId;
+        async function loadHeroSlides() {
+            const { data, error } = await supabaseClient.from('hero_slides').select('*');
+            if(error) return console.error(error);
+            document.getElementById('stat-slides').textContent = data.length;
             
-            currentEditingImageBase64 = prod.image;
-            document.getElementById('pImgFile').removeAttribute('required');
-            imgEditNotice.style.display = 'block';
-
-            formTitle.innerText = 'Edit Product';
-            cancelEditBtn.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
-        window.deleteProduct = function(id) {
-            createDeleteToast('product', id);
-        };
-
-        // Reusable Custom Confirm Delete Toast
-        function createDeleteToast(type, id) {
-            const confirmToast = document.createElement('div');
-            confirmToast.className = 'toast info show';
-            confirmToast.style.pointerEvents = 'auto';
-            confirmToast.innerHTML = `
-                <p style="margin-bottom: 1rem; color: white;">Are you sure you want to delete this ${type}?</p>
-                <div style="display:flex; justify-content: center; gap: 1rem;">
-                    <button class="btn btn-danger" id="confirmDelBtn" style="padding: 0.5rem 1rem; font-size: 0.8rem; border: none; max-width: 120px;">Yes, Delete</button>
-                    <button class="btn" id="cancelDelBtn" style="padding: 0.5rem 1rem; font-size: 0.8rem; background: #555; color: white; max-width: 120px;">Cancel</button>
-                </div>
-            `;
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                container.className = 'toast-container';
-                document.body.appendChild(container);
-            }
-            container.appendChild(confirmToast);
-
-            document.getElementById('confirmDelBtn').addEventListener('click', () => {
-                let dbRef;
-                if (type === 'logo') {
-                    dbRef = ref(db, 'branding/logo');
-                } else if (type === 'hero') {
-                    dbRef = ref(db, 'branding/hero');
-                } else {
-                    const node = type === 'product' ? 'products' : 'categories';
-                    dbRef = ref(db, `${node}/${id}`);
-                }
-                remove(dbRef)
-                    .then(() => window.showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted.`, 'success'))
-                    .catch(err => window.showToast(`Error: ${err.message}`, 'error'));
-                confirmToast.remove();
-            });
-
-            document.getElementById('cancelDelBtn').addEventListener('click', () => {
-                confirmToast.remove();
-            });
+            document.getElementById('slides-grid').innerHTML = data.map(s => {
+                const img = s.image_url || s.imageUrl || '';
+                return `
+                <div class="item-card">
+                    <img src="${img}" class="item-image">
+                    <div class="item-content">
+                        <h4 class="item-title">${s.title}</h4>
+                        <p class="item-subtitle">${s.subtitle || '-'}</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="action-btn action-edit" onclick='editSlide(${JSON.stringify(s).replace(/'/g, "&#39;")})'><i data-lucide="edit-2" style="width:14px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Edit</button>
+                        <button class="action-btn action-delete" onclick="deleteRecord('hero_slides', '${s.id}')"><i data-lucide="trash-2" style="width:14px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+            lucide.createIcons();
         }
+
+        async function loadCategories() {
+            const { data, error } = await supabaseClient.from('categories').select('*');
+            if(error) return console.error(error);
+            document.getElementById('stat-categories').textContent = data.length;
+            
+            const catSelect = document.getElementById('p-category');
+            catSelect.innerHTML = '<option value="">Select Collection</option>' + data.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            
+            document.getElementById('categories-grid').innerHTML = data.map(c => {
+                const img = c.image_url || c.imageUrl || '';
+                return `
+                <div class="item-card" style="text-align:center;">
+                    <div style="padding: 2rem;">
+                        <img src="${img}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 1rem; border: 3px solid var(--gold-pale);">
+                        <h4 class="item-title">${c.name}</h4>
+                    </div>
+                    <div class="item-actions">
+                        <button class="action-btn action-edit" onclick='editCategory(${JSON.stringify(c).replace(/'/g, "&#39;")})'>Edit</button>
+                        <button class="action-btn action-delete" onclick="deleteRecord('categories', '${c.id}')">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function loadProducts() {
+            const { data, error } = await supabaseClient.from('products').select('*');
+            if(error) return console.error(error);
+            document.getElementById('stat-products').textContent = data.length;
+            
+            document.getElementById('products-table').innerHTML = data.map(p => {
+                const img = p.image1 || p.image_url || p.imageUrl || '';
+                return `
+                <tr>
+                    <td class="td-image"><img src="${img}"></td>
+                    <td class="td-name">${p.name}</td>
+                    <td class="td-cat">${p.category || '-'}</td>
+                    <td class="td-price">₹${p.price}</td>
+                    <td class="td-actions">
+                        <button class="td-edit" onclick='editProduct(${JSON.stringify(p).replace(/'/g, "&#39;")})'><i data-lucide="edit-2" style="width:18px;"></i></button>
+                        <button class="td-delete" onclick="deleteRecord('products', '${p.id}')"><i data-lucide="trash-2" style="width:18px;"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        async function loadOrders() {
+            const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
+            if(error) return console.error(error);
+            
+            document.getElementById('orders-table').innerHTML = data.map(o => {
+                return `
+                <tr>
+                    <td class="td-name">${o.order_number}</td>
+                    <td>${o.customer_name}<br><small style="color:var(--text-light);">${o.customer_phone}</small></td>
+                    <td class="td-price">₹${o.total_amount}</td>
+                    <td><span style="padding:4px 8px; border-radius:4px; font-size:0.7rem; background:${o.payment_status === 'captured' ? '#e8f5e9' : '#fff3e0'}; color:${o.payment_status === 'captured' ? '#2e7d32' : '#e65100'}; font-weight:600;">${o.payment_status.toUpperCase()}</span></td>
+                    <td>
+                        <select onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px; width:auto; border-radius:4px; font-size:0.75rem;">
+                            <option value="pending" ${o.order_status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="confirmed" ${o.order_status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                            <option value="processing" ${o.order_status === 'processing' ? 'selected' : ''}>Processing</option>
+                            <option value="shipped" ${o.order_status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                            <option value="delivered" ${o.order_status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                        </select>
+                    </td>
+                    <td class="td-actions">
+                        <button class="td-edit" onclick="promptTracking('${o.id}', '${o.tracking_number || ''}', '${o.courier_name || ''}')"><i data-lucide="truck" style="width:18px;"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        window.updateOrderStatus = async function(id, status) {
+            const { error } = await supabaseClient.from('orders').update({ order_status: status }).eq('id', id);
+            if(!error) { 
+                showToast('Status updated.');
+                await supabaseClient.from('order_status_history').insert({ order_id: id, status: status, message: 'Status updated by admin' });
+            } else alert('Error: ' + error.message);
+        }
+
+        window.promptTracking = async function(id, currentTrack, currentCourier) {
+            const courier = prompt("Enter Courier Name (e.g. DTDC):", currentCourier);
+            if(courier === null) return;
+            const track = prompt("Enter Tracking Number:", currentTrack);
+            if(track === null) return;
+            
+            const { error } = await supabaseClient.from('orders').update({ tracking_number: track, courier_name: courier }).eq('id', id);
+            if(!error) { showToast('Tracking saved.'); loadOrders(); }
+        }
+
+        // Utils
+        function encodeImage(input, previewId, hiddenId) {
+            const file = input.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById(previewId).src = e.target.result;
+                document.getElementById(hiddenId).value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.openModal = function(id) {
+            document.getElementById(id).classList.add('show');
+        }
+
+        window.closeModal = function(id) {
+            document.getElementById(id).classList.remove('show');
+            document.getElementById(id).querySelector('form').reset();
+            document.querySelectorAll(`#${id} .image-preview`).forEach(img => img.src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=');
+            document.querySelectorAll(`#${id} input[type="hidden"]`).forEach(inp => inp.value = '');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('admin-toast');
+            document.getElementById('toast-msg').textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        window.deleteRecord = async function(table, id) {
+            if(confirm('Permanently delete this record?')) {
+                const { error } = await supabaseClient.from(table).delete().eq('id', id);
+                if(!error) { showToast('Record deleted.'); fetchSupabaseData(); }
+                else alert('Error: ' + error.message);
+            }
+        }
+
+        // Prefill Form Modals
+        window.editSlide = s => {
+            document.getElementById('s-id').value = s.id;
+            document.getElementById('s-title').value = s.title || '';
+            document.getElementById('s-subtitle').value = s.subtitle || '';
+            const img = s.image_url || s.imageUrl || '';
+            document.getElementById('s-image-preview').src = img || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+            document.getElementById('s-image-base64').value = img;
+            openModal('slide-modal');
+        };
+
+        window.editCategory = c => {
+            document.getElementById('c-id').value = c.id;
+            document.getElementById('c-name').value = c.name || '';
+            const img = c.image_url || c.imageUrl || '';
+            document.getElementById('c-image-preview').src = img || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+            document.getElementById('c-image-base64').value = img;
+            openModal('category-modal');
+        };
+
+        window.editProduct = p => {
+            document.getElementById('p-id').value = p.id;
+            document.getElementById('p-name').value = p.name || '';
+            document.getElementById('p-price').value = p.price || 0;
+            document.getElementById('p-category').value = p.category || '';
+            const img = p.image1 || p.image_url || p.imageUrl || '';
+            document.getElementById('p-image-preview').src = img || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+            document.getElementById('p-image-base64').value = img;
+            openModal('product-modal');
+        };
+
+        // Submissions
+        document.getElementById('slide-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const id = document.getElementById('s-id').value;
+            const payload = {
+                title: document.getElementById('s-title').value,
+                subtitle: document.getElementById('s-subtitle').value,
+                image_url: document.getElementById('s-image-base64').value
+            };
+            if(!id) payload.id = generateId();
+            const { error } = id ? await supabaseClient.from('hero_slides').update(payload).eq('id', id) : await supabaseClient.from('hero_slides').insert([payload]);
+            if(!error) { showToast('Slide saved'); closeModal('slide-modal'); fetchSupabaseData(); }
+            else alert(error.message);
+        });
+
+        document.getElementById('category-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const id = document.getElementById('c-id').value;
+            const payload = {
+                name: document.getElementById('c-name').value,
+                image_url: document.getElementById('c-image-base64').value
+            };
+            if(!id) payload.id = generateId();
+            const { error } = id ? await supabaseClient.from('categories').update(payload).eq('id', id) : await supabaseClient.from('categories').insert([payload]);
+            if(!error) { showToast('Collection saved'); closeModal('category-modal'); fetchSupabaseData(); }
+            else alert(error.message);
+        });
+
+        document.getElementById('product-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const id = document.getElementById('p-id').value;
+            const payload = {
+                name: document.getElementById('p-name').value,
+                price: parseFloat(document.getElementById('p-price').value),
+                category: document.getElementById('p-category').value,
+                image1: document.getElementById('p-image-base64').value
+            };
+            if(!id) payload.id = generateId();
+            const { error } = id ? await supabaseClient.from('products').update(payload).eq('id', id) : await supabaseClient.from('products').insert([payload]);
+            if(!error) { showToast('Masterpiece saved'); closeModal('product-modal'); fetchSupabaseData(); }
+            else alert(error.message);
+        });
     </script>
 </body>
 </html>

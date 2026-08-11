@@ -243,7 +243,7 @@
         <div class="auth-card">
             <h1>ayhaan <span>Opulent</span></h1>
             <p>Management System</p>
-            <input type="password" id="pin-input" class="auth-input" placeholder="••••" maxlength="4">
+            <input type="password" id="pin-input" class="auth-input" placeholder="Enter Password">
             <button id="login-btn" class="btn"><span>Authenticate</span></button>
             <p id="auth-error">Invalid credentials.</p>
         </div>
@@ -527,7 +527,7 @@
         const loginBtn = document.getElementById('login-btn');
         loginBtn.addEventListener('click', () => {
             const pin = document.getElementById('pin-input').value.trim();
-            if(pin === '8590' || pin === '1234') {
+            if(pin === 'wbht2') {
                 document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('admin-app').style.display = 'flex';
                 fetchSupabaseData();

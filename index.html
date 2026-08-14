@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ayhaan Opulent | Management System</title>
-    <!-- Tailwind CSS for fluid responsive utility styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -44,35 +43,28 @@
             --text-light: #7A7571;
             --line: #E8E2D8;
             --danger: #B5473C;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: var(--text-dark); }
 
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); }
         ::-webkit-scrollbar-thumb { background: rgba(158, 106, 104, 0.3); border-radius: 999px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 
-        /* Mobile Drawer Slide Animation */
         .mobile-drawer {
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             transform: translateX(-100%);
         }
-        .mobile-drawer.open {
-            transform: translateX(0);
-        }
+        .mobile-drawer.open { transform: translateX(0); }
+        
         .drawer-backdrop {
             transition: opacity 0.3s ease;
             opacity: 0;
             pointer-events: none;
         }
-        .drawer-backdrop.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
 
         .tab-content { display: none; animation: fadeUp 0.35s ease-out forwards; }
         .tab-content.active { display: block; }
@@ -87,7 +79,6 @@
 </head>
 <body class="min-h-screen antialiased flex flex-col justify-between selection:bg-goldPale selection:text-textDark">
 
-    <!-- Authentication Overlay -->
     <div id="auth-overlay" class="fixed inset-0 bg-brandBg/95 backdrop-blur-md z-[1000] flex items-center justify-center p-4">
         <div class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl w-full max-w-md text-center border-t-4 border-gold">
             <h1 class="font-serif text-3xl md:text-4xl text-sidebarBg font-semibold mb-1">ayhaan <span class="italic text-gold">Opulent</span></h1>
@@ -99,14 +90,13 @@
                     Authenticate
                 </button>
             </div>
-            <p id="auth-error" class="text-danger text-xs mt-4 hidden font-medium">Invalid access pin provided.</p>
+            <p id="auth-error" class="text-danger text-xs mt-4 hidden font-medium">Invalid access PIN provided.</p>
         </div>
     </div>
 
-    <!-- Main App Wrapper -->
     <div id="admin-app" class="hidden min-h-screen flex-col md:flex-row w-full overflow-hidden">
         
-        <!-- Mobile Top Header (Visible only on mobile/tablet < md) -->
+        <!-- Mobile Top Header -->
         <header class="md:hidden bg-sidebarBg text-white px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-md border-b border-white/10">
             <div class="flex items-center gap-3">
                 <button id="mobile-menu-btn" class="p-2 -ml-2 rounded-lg hover:bg-white/10 text-white transition focus:outline-none" aria-label="Toggle navigation menu">
@@ -123,13 +113,11 @@
             </button>
         </header>
 
-        <!-- Mobile Drawer Overlay Backdrop -->
         <div id="drawer-backdrop" class="drawer-backdrop fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"></div>
 
-        <!-- Off-Canvas Sidebar (Slide-over Mobile Drawer & Fixed Desktop Sidebar) -->
+        <!-- Sidebar Drawer -->
         <aside id="sidebar-drawer" class="mobile-drawer md:transform-none fixed md:relative inset-y-0 left-0 w-[270px] lg:w-[290px] bg-sidebarBg text-white z-50 md:z-10 flex flex-col shadow-2xl md:shadow-md h-full shrink-0">
             
-            <!-- Mobile Drawer Close Header -->
             <div class="px-6 py-6 border-b border-white/10 flex items-center justify-between">
                 <div class="text-left">
                     <h2 class="font-serif text-2xl font-bold tracking-widest text-white">ayhaan</h2>
@@ -171,7 +159,6 @@
                 </button>
             </nav>
 
-            <!-- Sidebar Footer -->
             <div class="p-4 border-t border-white/10 bg-sidebarBgDark/40">
                 <button onclick="lockSystem()" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-white/5 hover:bg-white/15 text-white/80 hover:text-white text-xs font-semibold uppercase tracking-wider transition">
                     <i data-lucide="lock" class="w-4 h-4"></i>
@@ -180,10 +167,9 @@
             </div>
         </aside>
 
-        <!-- Main Content Area -->
+        <!-- Main Content View -->
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 bg-brandBg min-h-screen">
             
-            <!-- Dashboard / Overview -->
             <section id="dashboard" class="tab-content active space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-2">
                     <div>
@@ -195,7 +181,6 @@
                     </button>
                 </div>
                 
-                <!-- Quick Metric Cards -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
                     <div class="bg-white p-5 rounded-2xl border border-lineColor shadow-sm hover:shadow-md transition">
                         <div class="flex justify-between items-center text-textLight mb-3">
@@ -230,14 +215,13 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions Banner -->
                 <div class="bg-gradient-to-r from-sidebarBg to-sidebarBgDark rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
                         <h3 class="font-serif text-2xl font-semibold">Store Catalog Management</h3>
-                        <p class="text-xs text-white/80 mt-1 max-w-xl">Upload high-resolution luxury imagery, adjust collection categories, or edit product listings.</p>
+                        <p class="text-xs text-white/80 mt-1 max-w-xl">Upload fine jewelry imagery, manage multi-category assignments, and curate your collections.</p>
                     </div>
                     <div class="flex flex-wrap gap-2.5">
-                        <button onclick="switchTab('products'); openModal('product-modal');" class="px-4 py-2.5 bg-gold hover:bg-goldDeep text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition shadow">
+                        <button onclick="switchTab('products'); openNewProduct();" class="px-4 py-2.5 bg-gold hover:bg-goldDeep text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition shadow">
                             + Add Piece
                         </button>
                         <button onclick="switchTab('categories'); openModal('category-modal');" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition border border-white/20">
@@ -266,20 +250,16 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-3">
                     <div>
                         <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Order Management</h1>
-                        <p class="text-xs sm:text-sm text-textLight mt-1">Track payments, order status updates, and courier details.</p>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Track payments, order status updates, and customer details.</p>
                     </div>
-                    
-                    <!-- Search Input -->
                     <div class="relative w-full sm:w-64">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-textLight"></i>
                         <input type="text" id="order-search" oninput="filterOrders()" placeholder="Search order # or customer..." class="w-full pl-9 pr-4 py-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
                     </div>
                 </div>
 
-                <!-- Orders Mobile Cards View (< lg screen) -->
                 <div id="orders-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:hidden"></div>
 
-                <!-- Orders Desktop Table View (>= lg screen) -->
                 <div class="hidden lg:block bg-white rounded-2xl border border-lineColor shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -299,26 +279,23 @@
                 </div>
             </section>
 
-            <!-- Products -->
             <section id="products" class="tab-content space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-3">
                     <div>
                         <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Jewelry Portfolio</h1>
-                        <p class="text-xs sm:text-sm text-textLight mt-1">Manage individual fine pieces, pricing, and assigned categories.</p>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Manage individual fine pieces, pricing, and multi-category assignments.</p>
                     </div>
                     
                     <div class="flex flex-wrap items-center gap-2">
-                        <!-- Search & Category Filter -->
                         <div class="relative flex-1 sm:w-48">
                             <input type="text" id="product-search" oninput="filterProducts()" placeholder="Search piece..." class="w-full px-3 py-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
                         </div>
-                        <button onclick="openModal('product-modal')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gold hover:bg-goldDeep text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition shadow-sm">
+                        <button onclick="openNewProduct()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gold hover:bg-goldDeep text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition shadow-sm">
                             <i data-lucide="plus" class="w-4 h-4"></i> Add Piece
                         </button>
                     </div>
                 </div>
                 
-                <!-- Products Card Grid for Mobile -->
                 <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5"></div>
             </section>
 
@@ -339,8 +316,7 @@
         </main>
     </div>
 
-    <!-- Modals -->
-
+    
     <!-- Slide Modal -->
     <div id="slide-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
@@ -407,7 +383,7 @@
         </div>
     </div>
 
-    <!-- Product Modal -->
+    <!-- Product Modal with Multi-Category Support (Primary, Secondary, Tertiary) -->
     <div id="product-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
             <button type="button" onclick="closeModal('product-modal')" class="absolute top-4 right-4 text-textLight hover:text-danger transition">
@@ -420,18 +396,60 @@
                     <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Piece Nomenclature</label>
                     <input type="text" id="p-name" required class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Value (₹)</label>
-                        <input type="number" id="p-price" required min="0" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Value (₹)</label>
+                    <input type="number" id="p-price" required min="0" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+
+                <div id="p-stock-wrap">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Stock Available</label>
+                    <input type="number" id="p-stock" min="0" step="1" placeholder="e.g. 10" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Size Type</label>
+                    <select id="p-size-type" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                        <option value="">No Sizes (use Stock Available above)</option>
+                        <option value="bangle">Bangle</option>
+                        <option value="ring">Ring</option>
+                    </select>
+                </div>
+
+                <div id="p-sizes-wrap" class="hidden p-3 bg-brandBg rounded-xl border border-lineColor space-y-2">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Stock per Size</label>
+                    <div id="p-sizes-grid" class="grid grid-cols-2 gap-2"></div>
+                </div>
+
+                <!-- Multi-Category Selectors (Assign 1, 2, or 3 categories) -->
+                <div class="p-3 bg-brandBg rounded-xl border border-lineColor space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight">Assigned Collections (Up to 3)</label>
+                        <span class="text-[10px] text-gold font-medium">Multi-Tagging</span>
                     </div>
+
                     <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Collection</label>
-                        <select id="p-category" required class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
-                            <option value="">Select Collection</option>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">Primary Collection *</span>
+                        <select id="p-category-1" required class="w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                            <option value="">Select Primary Collection</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">Secondary Collection (Optional)</span>
+                        <select id="p-category-2" class="w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">Tertiary Collection (Optional)</span>
+                        <select id="p-category-3" class="w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                            <option value="">None</option>
                         </select>
                     </div>
                 </div>
+
                 <div>
                     <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Product Image</label>
                     <div class="flex items-center gap-4 mt-1">
@@ -443,6 +461,7 @@
                     </div>
                     <input type="hidden" id="p-image-base64" required>
                 </div>
+
                 <button type="submit" class="w-full py-3 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition mt-2">
                     Save Piece
                 </button>
@@ -450,7 +469,7 @@
         </div>
     </div>
 
-    <!-- Custom Non-Blocking Confirmation Modal -->
+    <!-- Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-[3000] hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-sm rounded-2xl p-6 text-center shadow-2xl border-t-4 border-danger">
             <i data-lucide="alert-triangle" class="w-12 h-12 text-danger mx-auto mb-3"></i>
@@ -463,473 +482,524 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="admin-toast" class="fixed bottom-6 right-6 left-6 sm:left-auto bg-sidebarBg text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 z-[4000] transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
         <i data-lucide="check-circle-2" class="w-5 h-5 text-gold shrink-0"></i>
         <span id="toast-msg" class="text-xs font-semibold tracking-wide">Action executed successfully.</span>
     </div>
 
-    <!-- SDK dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
         lucide.createIcons();
 
-        // Supabase Initialization
         const SUPABASE_URL = "https://orjxoslyjonedljqnzgu.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yanhvc2x5am9uZWRsanFuemd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMTMzMjAsImV4cCI6MjEwMTY4OTMyMH0.dWvnC8CkaUg-uNw2S0rNKklBOwx3ai6bMdI-ZA3RG3I";
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let globalOrders = [];
         let globalProducts = [];
+        let globalCategories = [];
+        let globalSlides = [];
 
-        // Generate UUID fallback
-        function generateId() {
-            if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-            return 'id-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+        // Fixed size ladders for sized jewelry pieces.
+        const SIZE_OPTIONS = {
+            bangle: ['2.2', '2.4', '2.6', '2.8'],
+            ring: ['5', '6', '7', '8']
+        };
+
+        function renderSizeInputs(type, existingSizes) {
+            const stockWrap = document.getElementById('p-stock-wrap');
+            const sizesWrap = document.getElementById('p-sizes-wrap');
+            const sizesGrid = document.getElementById('p-sizes-grid');
+
+            if (!type || !SIZE_OPTIONS[type]) {
+                sizesWrap.classList.add('hidden');
+                sizesGrid.innerHTML = '';
+                stockWrap.classList.remove('hidden');
+                return;
+            }
+
+            stockWrap.classList.add('hidden');
+            sizesWrap.classList.remove('hidden');
+
+            sizesGrid.innerHTML = SIZE_OPTIONS[type].map(s => {
+                const existing = (existingSizes || []).find(x => x.size === s);
+                const val = existing ? existing.stock : '';
+                const label = type === 'ring' ? `Ring Size ${s}` : `Bangle Size ${s}`;
+                return `
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">${label}</span>
+                        <input type="number" min="0" step="1" data-size="${s}" value="${val}" placeholder="Stock" class="p-size-stock-input w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                    </div>`;
+            }).join('');
         }
 
-        // Authentication PIN Handler
-        const loginBtn = document.getElementById('login-btn');
-        loginBtn.addEventListener('click', () => {
-            const pin = document.getElementById('pin-input').value.trim();
-            if(pin === 'wbht2' || pin === '8590' || pin === '1234') {
-                document.getElementById('auth-overlay').classList.add('hidden');
-                document.getElementById('admin-app').classList.remove('hidden');
-                document.getElementById('admin-app').classList.add('flex');
-                fetchSupabaseData();
-            } else {
-                document.getElementById('auth-error').classList.remove('hidden');
-            }
+        document.getElementById('p-size-type').addEventListener('change', (e) => {
+            renderSizeInputs(e.target.value, null);
         });
-        document.getElementById('pin-input').addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') loginBtn.click();
+
+        function showToast(message) {
+            const toast = document.getElementById('admin-toast');
+            document.getElementById('toast-msg').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        const authOverlay = document.getElementById('auth-overlay');
+        const adminApp = document.getElementById('admin-app');
+        const pinInput = document.getElementById('pin-input');
+        const loginBtn = document.getElementById('login-btn');
+        const authError = document.getElementById('auth-error');
+
+        function checkAuth() {
+            if (sessionStorage.getItem('ao_admin_auth') === 'true') {
+                authOverlay.style.display = 'none';
+                adminApp.classList.remove('hidden');
+                adminApp.classList.add('flex');
+                fetchSupabaseData();
+            }
+        }
+
+        loginBtn.addEventListener('click', () => {
+            const pin = pinInput.value.trim();
+            if (pin === 'wbht2' || pin === '8590' || pin === '1234') {
+                sessionStorage.setItem('ao_admin_auth', 'true');
+                authError.classList.add('hidden');
+                checkAuth();
+            } else {
+                authError.classList.remove('hidden');
+            }
         });
 
         function lockSystem() {
-            document.getElementById('pin-input').value = '';
-            document.getElementById('auth-overlay').classList.remove('hidden');
-            document.getElementById('admin-app').classList.add('hidden');
-            document.getElementById('admin-app').classList.remove('flex');
-            closeMobileDrawer();
+            sessionStorage.removeItem('ao_admin_auth');
+            location.reload();
         }
 
-        /* Mobile Drawer Toggle Handlers */
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const drawerCloseBtn = document.getElementById('drawer-close-btn');
         const sidebarDrawer = document.getElementById('sidebar-drawer');
         const drawerBackdrop = document.getElementById('drawer-backdrop');
 
-        function openMobileDrawer() {
+        function openDrawer() {
             sidebarDrawer.classList.add('open');
             drawerBackdrop.classList.add('open');
-            document.body.style.overflow = 'hidden';
         }
 
-        function closeMobileDrawer() {
+        function closeDrawer() {
             sidebarDrawer.classList.remove('open');
             drawerBackdrop.classList.remove('open');
-            document.body.style.overflow = '';
         }
 
-        if(mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMobileDrawer);
-        if(drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeMobileDrawer);
-        if(drawerBackdrop) drawerBackdrop.addEventListener('click', closeMobileDrawer);
+        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openDrawer);
+        if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeDrawer);
+        if (drawerBackdrop) drawerBackdrop.addEventListener('click', closeDrawer);
 
-        // Unified Navigation Switcher
-        function switchTab(targetId, titleText) {
-            // Highlight links
-            document.querySelectorAll('.nav-link').forEach(btn => {
-                const target = btn.getAttribute('data-target');
-                if(target === targetId) {
-                    btn.classList.add('active', 'bg-white/10', 'text-white', 'border-gold');
-                    btn.classList.remove('border-transparent', 'text-white/80');
-                    if(btn.getAttribute('data-title')) titleText = btn.getAttribute('data-title');
-                } else {
-                    btn.classList.remove('active', 'bg-white/10', 'text-white', 'border-gold');
-                    btn.classList.add('border-transparent', 'text-white/80');
-                }
-            });
+        function switchTab(targetId, title) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active', 'border-gold', 'bg-white/10'));
 
-            // Active Tab Content
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            const targetEl = document.getElementById(targetId);
-            if(targetEl) targetEl.classList.add('active');
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) targetSection.classList.add('active');
 
-            // Update mobile top header title
-            if(titleText) {
-                document.getElementById('mobile-page-title').textContent = titleText;
+            const activeBtn = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+            if (activeBtn) activeBtn.classList.add('active', 'border-gold', 'bg-white/10');
+
+            if (title) {
+                const mobTitle = document.getElementById('mobile-page-title');
+                if (mobTitle) mobTitle.textContent = title;
             }
 
-            closeMobileDrawer();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            closeDrawer();
         }
 
         document.querySelectorAll('.nav-link').forEach(btn => {
             btn.addEventListener('click', () => {
-                switchTab(btn.getAttribute('data-target'), btn.getAttribute('data-title'));
+                const target = btn.getAttribute('data-target');
+                const title = btn.getAttribute('data-title');
+                switchTab(target, title);
             });
         });
 
         async function fetchSupabaseData() {
-            await Promise.all([loadHeroSlides(), loadCategories(), loadProducts(), loadOrders()]);
-            lucide.createIcons();
+            try {
+                const [prodsRes, catsRes, slidesRes, ordersRes] = await Promise.all([
+                    supabaseClient.from('products').select('*'),
+                    supabaseClient.from('categories').select('*'),
+                    supabaseClient.from('hero_slides').select('*'),
+                    supabaseClient.from('orders').select('*').order('created_at', { ascending: false })
+                ]);
+
+                if (!prodsRes.error) globalProducts = prodsRes.data || []; else console.error("Products fetch error:", prodsRes.error.message);
+                if (!catsRes.error) globalCategories = catsRes.data || []; else console.error("Categories fetch error:", catsRes.error.message);
+                if (!slidesRes.error) globalSlides = slidesRes.data || []; else console.error("Slides fetch error:", slidesRes.error.message);
+                if (!ordersRes.error) globalOrders = ordersRes.data || []; else console.error("Orders fetch error:", ordersRes.error.message);
+
+                document.getElementById('stat-products').textContent = globalProducts.length;
+                document.getElementById('stat-categories').textContent = globalCategories.length;
+                document.getElementById('stat-slides').textContent = globalSlides.length;
+                document.getElementById('stat-orders').textContent = globalOrders.length;
+
+                renderCategoriesOptions();
+                renderProductsGrid();
+                renderCategoriesGrid();
+                renderSlidesGrid();
+                renderOrders();
+
+            } catch (err) {
+                console.error("Data synchronization error:", err);
+            }
         }
 
-        // 1. Hero Slides
-        async function loadHeroSlides() {
-            const { data, error } = await supabaseClient.from('hero_slides').select('*');
-            if(error) { console.error(error); return; }
-            document.getElementById('stat-slides').textContent = data ? data.length : 0;
-            
-            const container = document.getElementById('slides-grid');
-            if(!data || data.length === 0) {
-                container.innerHTML = `<div class="col-span-full py-12 text-center text-xs text-textLight">No presentations available.</div>`;
+        function renderCategoriesOptions() {
+            const cat1 = document.getElementById('p-category-1');
+            const cat2 = document.getElementById('p-category-2');
+            const cat3 = document.getElementById('p-category-3');
+
+            let options1 = '<option value="">Select Primary Collection</option>';
+            let options2 = '<option value="">None</option>';
+            let options3 = '<option value="">None</option>';
+
+            globalCategories.forEach(c => {
+                options1 += `<option value="${c.name}">${c.name}</option>`;
+                options2 += `<option value="${c.name}">${c.name}</option>`;
+                options3 += `<option value="${c.name}">${c.name}</option>`;
+            });
+
+            if (cat1) cat1.innerHTML = options1;
+            if (cat2) cat2.innerHTML = options2;
+            if (cat3) cat3.innerHTML = options3;
+        }
+
+        function renderProductsGrid(items = globalProducts) {
+            const grid = document.getElementById('products-grid');
+            if (!grid) return;
+
+            if (items.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-xs text-textLight py-8">No jewelry pieces available.</p>`;
                 return;
             }
 
-            container.innerHTML = data.map(s => {
-                const img = s.image_url || s.imageUrl || '';
+            grid.innerHTML = items.map(p => {
+                const img = p.image1 || p.image_url || p.imageUrl || 'https://placehold.co/300x300/EFE4CE/636B2F?text=Piece';
+                const cats = p.category ? String(p.category).split(',').map(c => c.trim()) : ['Collection'];
+                
+                const catPills = cats.map(c => 
+                    `<span class="text-[9px] bg-goldPale text-sidebarBg font-bold px-1.5 py-0.5 rounded-md border border-gold/30">${c}</span>`
+                ).join(' ');
+
                 return `
-                <div class="bg-white border border-lineColor rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
-                    <img src="${img}" class="w-full h-40 object-cover bg-goldPale/30" alt="${s.title}">
-                    <div class="p-4">
-                        <h4 class="font-serif font-bold text-lg text-sidebarBg truncate">${s.title}</h4>
-                        <p class="text-xs text-textLight mt-0.5 truncate">${s.subtitle || '-'}</p>
-                    </div>
-                    <div class="flex border-t border-lineColor text-xs font-semibold">
-                        <button onclick='editSlide(${JSON.stringify(s).replace(/'/g, "&#39;")})' class="flex-1 py-2.5 text-textLight hover:text-gold hover:bg-goldPale/20 transition">Edit</button>
-                        <button onclick="confirmDelete('hero_slides', '${s.id}')" class="flex-1 py-2.5 text-danger border-l border-lineColor hover:bg-red-50 transition">Delete</button>
-                    </div>
-                </div>`;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        // 2. Categories
-        async function loadCategories() {
-            const { data, error } = await supabaseClient.from('categories').select('*');
-            if(error) { console.error(error); return; }
-            document.getElementById('stat-categories').textContent = data ? data.length : 0;
-            
-            const catSelect = document.getElementById('p-category');
-            if(catSelect) {
-                catSelect.innerHTML = '<option value="">Select Collection</option>' + (data || []).map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-            }
-            
-            const container = document.getElementById('categories-grid');
-            if(!data || data.length === 0) {
-                container.innerHTML = `<div class="col-span-full py-12 text-center text-xs text-textLight">No collections registered.</div>`;
-                return;
-            }
-
-            container.innerHTML = data.map(c => {
-                const img = c.image_url || c.imageUrl || '';
-                return `
-                <div class="bg-white border border-lineColor rounded-2xl p-5 text-center shadow-sm hover:shadow-md transition">
-                    <img src="${img}" class="w-20 h-20 rounded-full object-cover mx-auto mb-3 border-2 border-goldPale shadow-sm bg-goldPale/30" alt="${c.name}">
-                    <h4 class="font-serif font-bold text-base text-sidebarBg">${c.name}</h4>
-                    <div class="mt-4 flex gap-2 justify-center text-xs font-semibold">
-                        <button onclick='editCategory(${JSON.stringify(c).replace(/'/g, "&#39;")})' class="px-3 py-1 bg-brandBg border border-lineColor rounded hover:border-gold transition">Edit</button>
-                        <button onclick="confirmDelete('categories', '${c.id}')" class="px-3 py-1 bg-red-50 text-danger border border-red-100 rounded hover:bg-red-100 transition">Delete</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        // 3. Products
-        async function loadProducts() {
-            const { data, error } = await supabaseClient.from('products').select('*');
-            if(error) { console.error(error); return; }
-            globalProducts = data || [];
-            document.getElementById('stat-products').textContent = globalProducts.length;
-            renderProducts(globalProducts);
-        }
-
-        function renderProducts(items) {
-            const container = document.getElementById('products-grid');
-            if(!items || items.length === 0) {
-                container.innerHTML = `<div class="col-span-full py-12 text-center text-xs text-textLight">No jewelry pieces match query.</div>`;
-                return;
-            }
-
-            container.innerHTML = items.map(p => {
-                const img = p.image1 || p.image_url || p.imageUrl || '';
-                return `
-                <div class="bg-white border border-lineColor rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                <div class="bg-white rounded-xl border border-lineColor p-3 flex flex-col justify-between shadow-sm hover:shadow-md transition">
                     <div>
-                        <img src="${img}" class="w-full h-36 sm:h-44 object-cover bg-goldPale/20" alt="${p.name}">
-                        <div class="p-3.5">
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-gold">${p.category || 'General'}</span>
-                            <h4 class="font-serif font-bold text-sm sm:text-base text-sidebarBg truncate mt-0.5">${p.name}</h4>
-                            <div class="font-semibold text-sm text-textDark mt-1">₹${p.price}</div>
-                        </div>
+                        <img src="${img}" alt="${p.name}" class="w-full aspect-square object-cover rounded-lg border border-lineColor mb-2">
+                        <div class="flex flex-wrap gap-1 mb-1.5">${catPills}</div>
+                        <h4 class="font-serif font-bold text-sm text-textDark truncate">${p.name}</h4>
+                        <p class="text-xs font-bold text-goldDeep mt-0.5">₹${Number(p.price).toLocaleString('en-IN')}</p>
+                        ${p.size_type && Array.isArray(p.sizes) && p.sizes.length > 0
+                            ? `<p class="text-[10px] font-semibold mt-0.5 text-textLight">${p.sizes.map(s => `<span class="${Number(s.stock) <= 0 ? 'text-danger' : ''}">${s.size}: ${s.stock}</span>`).join(' &nbsp;•&nbsp; ')}</p>`
+                            : `<p class="text-[10px] font-semibold mt-0.5 ${(p.stock !== undefined && p.stock !== null && Number(p.stock) <= 0) ? 'text-danger' : 'text-textLight'}">${(p.stock !== undefined && p.stock !== null) ? Number(p.stock) + ' in stock' : 'Stock not set'}</p>`
+                        }
                     </div>
-                    <div class="flex border-t border-lineColor text-xs font-semibold">
-                        <button onclick='editProduct(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="flex-1 py-2 text-textLight hover:text-gold hover:bg-goldPale/20 transition">Edit</button>
-                        <button onclick="confirmDelete('products', '${p.id}')" class="flex-1 py-2 text-danger border-l border-lineColor hover:bg-red-50 transition">Delete</button>
+                    <div class="flex gap-2 mt-3 pt-2 border-t border-lineColor">
+                        <button onclick="editProduct('${p.id}')" class="flex-1 py-1.5 bg-brandBg hover:bg-goldPale text-textDark text-[11px] font-semibold rounded transition">Edit</button>
+                        <button onclick="deleteProduct('${p.id}')" class="py-1.5 px-2.5 bg-danger/10 hover:bg-danger text-danger hover:text-white text-[11px] font-semibold rounded transition">Delete</button>
                     </div>
                 </div>`;
             }).join('');
-            lucide.createIcons();
         }
 
         function filterProducts() {
-            const q = document.getElementById('product-search').value.toLowerCase();
-            const filtered = globalProducts.filter(p => p.name.toLowerCase().includes(q) || (p.category && p.category.toLowerCase().includes(q)));
-            renderProducts(filtered);
+            const query = document.getElementById('product-search').value.toLowerCase();
+            const filtered = globalProducts.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                (p.category && p.category.toLowerCase().includes(query))
+            );
+            renderProductsGrid(filtered);
         }
 
-        // 4. Orders
-        async function loadOrders() {
-            const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
-            if(error) { console.error(error); return; }
-            globalOrders = data || [];
-            document.getElementById('stat-orders').textContent = globalOrders.length;
-            
-            const navBadge = document.getElementById('nav-order-count');
-            if(globalOrders.length > 0) {
-                navBadge.textContent = globalOrders.length;
-                navBadge.classList.remove('hidden');
-            }
+        function renderCategoriesGrid() {
+            const grid = document.getElementById('categories-grid');
+            if (!grid) return;
 
-            renderOrders(globalOrders);
-        }
-
-        function renderOrders(orders) {
-            const tableBody = document.getElementById('orders-table');
-            const cardContainer = document.getElementById('orders-cards');
-
-            if(!orders || orders.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-textLight">No orders found.</td></tr>`;
-                cardContainer.innerHTML = `<div class="col-span-full p-8 text-center text-textLight bg-white border border-lineColor rounded-2xl">No orders found.</div>`;
+            if (globalCategories.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-xs text-textLight py-8">No collections established.</p>`;
                 return;
             }
 
-            const payBadge = (s) => `<span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${s === 'captured' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${s || 'PENDING'}</span>`;
-            
-            const statusSelect = (id, cur) => `
-            <select onchange="updateOrderStatus('${id}', this.value)" class="p-1.5 text-xs rounded-lg border border-lineColor outline-none focus:border-gold bg-brandBg font-medium">
-                <option value="pending" ${cur==='pending'?'selected':''}>Pending</option>
-                <option value="confirmed" ${cur==='confirmed'?'selected':''}>Confirmed</option>
-                <option value="processing" ${cur==='processing'?'selected':''}>Processing</option>
-                <option value="shipped" ${cur==='shipped'?'selected':''}>Shipped</option>
-                <option value="delivered" ${cur==='delivered'?'selected':''}>Delivered</option>
-            </select>`;
+            grid.innerHTML = globalCategories.map(c => {
+                const img = c.image_url || c.imageUrl || 'https://placehold.co/300x300/EFE4CE/636B2F?text=Collection';
+                return `
+                <div class="bg-white rounded-xl border border-lineColor p-3 flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                    <div class="text-center">
+                        <img src="${img}" alt="${c.name}" class="w-20 h-20 rounded-full object-cover border border-lineColor mx-auto mb-2">
+                        <h4 class="font-serif font-bold text-sm text-textDark">${c.name}</h4>
+                    </div>
+                    <div class="flex gap-2 mt-3 pt-2 border-t border-lineColor">
+                        <button onclick="deleteCategory('${c.id}')" class="w-full py-1.5 bg-danger/10 hover:bg-danger text-danger hover:text-white text-[11px] font-semibold rounded transition">Remove</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
 
-            // Desktop Table Rows
-            tableBody.innerHTML = orders.map(o => `
-                <tr class="hover:bg-goldPale/10 transition">
-                    <td class="p-4 font-serif font-bold text-sidebarBg">${o.order_number || o.id.substring(0,8)}</td>
-                    <td class="p-4">
-                        <div class="font-medium text-textDark">${o.customer_name || 'Guest'}</div>
-                        <div class="text-[11px] text-textLight">${o.customer_phone || ''}</div>
-                    </td>
-                    <td class="p-4 font-bold text-gold">₹${o.total_amount || 0}</td>
-                    <td class="p-4">${payBadge(o.payment_status)}</td>
-                    <td class="p-4">${statusSelect(o.id, o.order_status)}</td>
-                    <td class="p-4 text-right">
-                        <button onclick="promptTracking('${o.id}','${o.tracking_number||''}','${o.courier_name||''}')" class="px-3 py-1.5 bg-brandBg hover:bg-goldPale/30 border border-lineColor rounded-lg text-xs font-semibold text-textDark transition">
-                            Trucking Details
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+        function renderSlidesGrid() {
+            const grid = document.getElementById('slides-grid');
+            if (!grid) return;
 
-            // Mobile Cards View
-            cardContainer.innerHTML = orders.map(o => `
-                <div class="bg-white p-4 rounded-2xl border border-lineColor shadow-sm space-y-3">
-                    <div class="flex justify-between items-center border-b border-lineColor pb-2">
-                        <span class="font-serif font-bold text-lg text-sidebarBg">${o.order_number || o.id.substring(0,8)}</span>
-                        ${payBadge(o.payment_status)}
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span class="text-textLight">Customer:</span>
-                        <span class="font-semibold text-textDark">${o.customer_name || 'Guest'} (${o.customer_phone || '-'})</span>
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span class="text-textLight">Amount:</span>
-                        <span class="font-bold text-gold">₹${o.total_amount || 0}</span>
-                    </div>
-                    <div class="pt-2 border-t border-lineColor flex items-center justify-between gap-2">
-                        ${statusSelect(o.id, o.order_status)}
-                        <button onclick="promptTracking('${o.id}','${o.tracking_number||''}','${o.courier_name||''}')" class="px-3 py-1.5 bg-brandBg border border-lineColor rounded-lg text-xs font-semibold text-textDark">
-                            🚚 Tracking
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+            if (globalSlides.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-xs text-textLight py-8">No hero presentations active.</p>`;
+                return;
+            }
 
-            lucide.createIcons();
+            grid.innerHTML = globalSlides.map(s => {
+                const img = s.image_url || s.imageUrl || 'https://placehold.co/600x300/EFE4CE/636B2F?text=Slide';
+                return `
+                <div class="bg-white rounded-xl border border-lineColor p-3 shadow-sm hover:shadow-md transition">
+                    <img src="${img}" class="w-full h-32 object-cover rounded-lg border border-lineColor mb-2">
+                    <h4 class="font-serif font-bold text-sm text-textDark">${s.title || 'Untitled Slide'}</h4>
+                    <p class="text-xs text-textLight truncate mb-3">${s.subtitle || ''}</p>
+                    <button onclick="deleteSlide('${s.id}')" class="w-full py-1.5 bg-danger/10 hover:bg-danger text-danger hover:text-white text-[11px] font-semibold rounded transition">Delete Slide</button>
+                </div>`;
+            }).join('');
+        }
+
+        function renderOrders(items = globalOrders) {
+            const table = document.getElementById('orders-table');
+            const cards = document.getElementById('orders-cards');
+
+            if (items.length === 0) {
+                const empty = `<p class="col-span-full text-center text-xs text-textLight py-8">No order transactions found.</p>`;
+                if (table) table.innerHTML = empty;
+                if (cards) cards.innerHTML = empty;
+                return;
+            }
+
+            if (table) {
+                table.innerHTML = items.map(o => `
+                    <tr class="hover:bg-brandBg/50 transition">
+                        <td class="p-4 font-bold text-sidebarBg">#${o.id ? o.id.toString().substring(0,8) : 'ORD'}</td>
+                        <td class="p-4 font-medium">${o.customer_name || 'Guest Customer'}<br><span class="text-[10px] text-textLight">${o.customer_phone || ''}</span></td>
+                        <td class="p-4 font-bold text-goldDeep">₹${Number(o.total_amount || 0).toLocaleString('en-IN')}</td>
+                        <td class="p-4 font-semibold text-emerald-700">${o.payment_status || 'Paid'}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold bg-goldPale text-sidebarBg">${o.status || 'Processing'}</span></td>
+                        <td class="p-4 text-right">
+                            <button onclick="updateOrderStatus('${o.id}')" class="px-3 py-1 bg-sidebarBg text-white text-[10px] font-semibold uppercase rounded hover:bg-gold transition">Status</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            if (cards) {
+                cards.innerHTML = items.map(o => `
+                    <div class="bg-white p-4 rounded-xl border border-lineColor shadow-sm space-y-2">
+                        <div class="flex justify-between items-center border-b border-lineColor pb-2">
+                            <span class="font-bold text-sidebarBg text-xs">#${o.id ? o.id.toString().substring(0,8) : 'ORD'}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-goldPale text-sidebarBg">${o.status || 'Processing'}</span>
+                        </div>
+                        <p class="text-xs font-semibold text-textDark">${o.customer_name || 'Guest Customer'}</p>
+                        <p class="text-xs font-bold text-goldDeep">Total: ₹${Number(o.total_amount || 0).toLocaleString('en-IN')}</p>
+                    </div>
+                `).join('');
+            }
         }
 
         function filterOrders() {
-            const q = document.getElementById('order-search').value.toLowerCase();
+            const query = document.getElementById('order-search').value.toLowerCase();
             const filtered = globalOrders.filter(o => 
-                (o.order_number && o.order_number.toLowerCase().includes(q)) || 
-                (o.customer_name && o.customer_name.toLowerCase().includes(q))
+                (o.customer_name && o.customer_name.toLowerCase().includes(query)) ||
+                (o.id && o.id.toString().toLowerCase().includes(query))
             );
             renderOrders(filtered);
         }
 
-        window.updateOrderStatus = async function(id, status) {
-            const { error } = await supabaseClient.from('orders').update({ order_status: status }).eq('id', id);
-            if(!error) { 
-                showToast('Order status updated.');
-            } else {
-                showToast('Failed to update status.');
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) {
+                m.classList.remove('hidden');
+                m.classList.add('flex');
             }
-        };
-
-        window.promptTracking = async function(id, currentTrack, currentCourier) {
-            const courier = prompt("Enter Courier Name (e.g. DTDC, BlueDart):", currentCourier);
-            if(courier === null) return;
-            const track = prompt("Enter Waybill / Tracking Number:", currentTrack);
-            if(track === null) return;
-            
-            const { error } = await supabaseClient.from('orders').update({ tracking_number: track, courier_name: courier }).eq('id', id);
-            if(!error) { showToast('Tracking info updated.'); loadOrders(); }
-        };
-
-        /* Custom Confirmation Dialog for Delete (Replaces browser alert/confirm) */
-        let pendingDeleteAction = null;
-
-        function confirmDelete(table, id) {
-            pendingDeleteAction = { table, id };
-            document.getElementById('confirm-modal').classList.remove('hidden');
-            document.getElementById('confirm-modal').classList.add('flex');
         }
 
-        document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
-            document.getElementById('confirm-modal').classList.add('hidden');
-            document.getElementById('confirm-modal').classList.remove('flex');
-            pendingDeleteAction = null;
-        });
-
-        document.getElementById('confirm-ok-btn').addEventListener('click', async () => {
-            if(!pendingDeleteAction) return;
-            const { table, id } = pendingDeleteAction;
-            document.getElementById('confirm-modal').classList.add('hidden');
-            document.getElementById('confirm-modal').classList.remove('flex');
-
-            const { error } = await supabaseClient.from(table).delete().eq('id', id);
-            if(!error) {
-                showToast('Record deleted.');
-                fetchSupabaseData();
-            } else {
-                showToast('Delete error: ' + error.message);
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) {
+                m.classList.remove('flex');
+                m.classList.add('hidden');
             }
-            pendingDeleteAction = null;
-        });
-
-        // Image Encoder Helper
-        function encodeImage(input, previewId, hiddenId) {
-            const file = input.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                document.getElementById(previewId).src = e.target.result;
-                document.getElementById(hiddenId).value = e.target.result;
-            };
-            reader.readAsDataURL(file);
         }
 
-        // Modal Controls
-        window.openModal = function(id) {
-            document.getElementById(id).classList.remove('hidden');
-            document.getElementById(id).classList.add('flex');
-        };
-
-        window.closeModal = function(id) {
-            document.getElementById(id).classList.add('hidden');
-            document.getElementById(id).classList.remove('flex');
-            const form = document.getElementById(id).querySelector('form');
-            if(form) form.reset();
-            document.querySelectorAll(`#${id} img`).forEach(img => img.src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=');
-            document.querySelectorAll(`#${id} input[type="hidden"]`).forEach(inp => inp.value = '');
-        };
-
-        function showToast(msg) {
-            const t = document.getElementById('admin-toast');
-            document.getElementById('toast-msg').textContent = msg;
-            t.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                t.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-            }, 3000);
+        function encodeImage(input, previewId, base64Id) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Downscale + compress before storing — raw phone photos (2-7MB
+                    // each) were bloating every products fetch to tens of MB and
+                    // causing the storefront grid to stall/never render.
+                    const img = new Image();
+                    img.onload = function() {
+                        const MAX_DIM = 1000;
+                        let w = img.width, h = img.height;
+                        if (w > MAX_DIM || h > MAX_DIM) {
+                            if (w >= h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+                            else { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.72);
+                        document.getElementById(previewId).src = compressed;
+                        document.getElementById(base64Id).value = compressed;
+                    };
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
-        // Form Prefills
-        window.editSlide = s => {
-            document.getElementById('s-id').value = s.id;
-            document.getElementById('s-title').value = s.title || '';
-            document.getElementById('s-subtitle').value = s.subtitle || '';
-            const img = s.image_url || s.imageUrl || '';
-            document.getElementById('s-image-preview').src = img || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
-            document.getElementById('s-image-base64').value = img;
-            openModal('slide-modal');
-        };
-
-        window.editCategory = c => {
-            document.getElementById('c-id').value = c.id;
-            document.getElementById('c-name').value = c.name || '';
-            const img = c.image_url || c.imageUrl || '';
-            document.getElementById('c-image-preview').src = img || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
-            document.getElementById('c-image-base64').value = img;
-            openModal('category-modal');
-        };
-
-        window.editProduct = p => {
-            document.getElementById('p-id').value = p.id;
-            document.getElementById('p-name').value = p.name || '';
-            document.getElementById('p-price').value = p.price || 0;
-            document.getElementById('p-category').value = p.category || '';
-            const img = p.image1 || p.image_url || p.imageUrl || '';
-            document.getElementById('p-image-preview').src = img || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
-            document.getElementById('p-image-base64').value = img;
-            openModal('product-modal');
-        };
-
-        // Form Submit Listeners
-        document.getElementById('slide-form').addEventListener('submit', async e => {
-            e.preventDefault();
-            const id = document.getElementById('s-id').value;
-            const payload = {
-                title: document.getElementById('s-title').value,
-                subtitle: document.getElementById('s-subtitle').value,
-                image_url: document.getElementById('s-image-base64').value
-            };
-            if(!id) payload.id = generateId();
-            const { error } = id ? await supabaseClient.from('hero_slides').update(payload).eq('id', id) : await supabaseClient.from('hero_slides').insert([payload]);
-            if(!error) { showToast('Presentation saved'); closeModal('slide-modal'); fetchSupabaseData(); }
-            else showToast('Save error: ' + error.message);
-        });
-
-        document.getElementById('category-form').addEventListener('submit', async e => {
-            e.preventDefault();
-            const id = document.getElementById('c-id').value;
-            const payload = {
-                name: document.getElementById('c-name').value,
-                image_url: document.getElementById('c-image-base64').value
-            };
-            if(!id) payload.id = generateId();
-            const { error } = id ? await supabaseClient.from('categories').update(payload).eq('id', id) : await supabaseClient.from('categories').insert([payload]);
-            if(!error) { showToast('Collection saved'); closeModal('category-modal'); fetchSupabaseData(); }
-            else showToast('Save error: ' + error.message);
-        });
-
-        document.getElementById('product-form').addEventListener('submit', async e => {
+        document.getElementById('product-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('p-id').value;
-            const payload = {
-                name: document.getElementById('p-name').value,
-                price: parseFloat(document.getElementById('p-price').value),
-                category: document.getElementById('p-category').value,
-                image1: document.getElementById('p-image-base64').value
-            };
-            if(!id) payload.id = generateId();
-            const { error } = id ? await supabaseClient.from('products').update(payload).eq('id', id) : await supabaseClient.from('products').insert([payload]);
-            if(!error) { showToast('Piece saved'); closeModal('product-modal'); fetchSupabaseData(); }
-            else showToast('Save error: ' + error.message);
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const stock = document.getElementById('p-stock').value;
+            const image = document.getElementById('p-image-base64').value;
+            const sizeType = document.getElementById('p-size-type').value;
+
+            const cat1 = document.getElementById('p-category-1').value;
+            const cat2 = document.getElementById('p-category-2').value;
+            const cat3 = document.getElementById('p-category-3').value;
+
+            // Collect unique non-empty category selections
+            const catsSelected = [...new Set([cat1, cat2, cat3].filter(c => c && c.trim().length > 0))];
+            const categoryString = catsSelected.join(', ');
+
+            const payload = { name, price: Number(price), category: categoryString, image_url: image };
+
+            if (sizeType && SIZE_OPTIONS[sizeType]) {
+                // Sized product: stock lives per-size, plain stock column is cleared.
+                payload.size_type = sizeType;
+                payload.sizes = Array.from(document.querySelectorAll('.p-size-stock-input')).map(inp => ({
+                    size: inp.dataset.size,
+                    stock: inp.value === '' ? 0 : Number(inp.value)
+                }));
+                payload.stock = null;
+            } else {
+                payload.size_type = null;
+                payload.sizes = null;
+                payload.stock = stock === '' ? 0 : Number(stock);
+            }
+
+            let saveError = null;
+            if (id) {
+                const { error } = await supabaseClient.from('products').update(payload).eq('id', id);
+                saveError = error;
+                if (!error) showToast("Product updated successfully!");
+            } else {
+                const { error } = await supabaseClient.from('products').insert([payload]);
+                saveError = error;
+                if (!error) showToast("Product created with multi-categories!");
+            }
+
+            if (saveError) {
+                console.error("Product save error:", saveError.message);
+                alert("Error saving product: " + saveError.message);
+                return;
+            }
+
+            closeModal('product-modal');
+            document.getElementById('product-form').reset();
+            document.getElementById('p-id').value = '';
+            document.getElementById('p-size-type').value = '';
+            renderSizeInputs('', null);
+            fetchSupabaseData();
         });
+
+        function openNewProduct() {
+            document.getElementById('product-form').reset();
+            document.getElementById('p-id').value = '';
+            document.getElementById('p-size-type').value = '';
+            renderSizeInputs('', null);
+            openModal('product-modal');
+        }
+
+        function editProduct(id) {
+            const prod = globalProducts.find(p => p.id === id);
+            if (!prod) return;
+
+            document.getElementById('p-id').value = prod.id;
+            document.getElementById('p-name').value = prod.name;
+            document.getElementById('p-price').value = prod.price;
+            document.getElementById('p-stock').value = (prod.stock !== undefined && prod.stock !== null) ? prod.stock : '';
+
+            const existingImage = prod.image1 || prod.image_url || prod.imageUrl || '';
+            document.getElementById('p-image-preview').src = existingImage;
+            document.getElementById('p-image-base64').value = existingImage;
+
+            // Populate up to 3 categories
+            const cats = prod.category ? String(prod.category).split(',').map(c => c.trim()) : [];
+            document.getElementById('p-category-1').value = cats[0] || '';
+            document.getElementById('p-category-2').value = cats[1] || '';
+            document.getElementById('p-category-3').value = cats[2] || '';
+
+            document.getElementById('p-size-type').value = prod.size_type || '';
+            renderSizeInputs(prod.size_type || '', prod.sizes || null);
+
+            openModal('product-modal');
+        }
+
+        async function deleteProduct(id) {
+            if (confirm("Remove this jewelry piece from store catalog?")) {
+                await supabaseClient.from('products').delete().eq('id', id);
+                showToast("Product deleted.");
+                fetchSupabaseData();
+            }
+        }
+
+        document.getElementById('category-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('c-name').value;
+            const image = document.getElementById('c-image-base64').value;
+
+            await supabaseClient.from('categories').insert([{ name, image_url: image }]);
+            showToast("Collection added!");
+            closeModal('category-modal');
+            document.getElementById('category-form').reset();
+            fetchSupabaseData();
+        });
+
+        async function deleteCategory(id) {
+            if (confirm("Delete this collection?")) {
+                await supabaseClient.from('categories').delete().eq('id', id);
+                showToast("Collection removed.");
+                fetchSupabaseData();
+            }
+        }
+
+        document.getElementById('slide-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('s-title').value;
+            const subtitle = document.getElementById('s-subtitle').value;
+            const image = document.getElementById('s-image-base64').value;
+
+            await supabaseClient.from('hero_slides').insert([{ title, subtitle, image_url: image }]);
+            showToast("Presentation slide added!");
+            closeModal('slide-modal');
+            document.getElementById('slide-form').reset();
+            fetchSupabaseData();
+        });
+
+        async function deleteSlide(id) {
+            if (confirm("Remove hero slide?")) {
+                await supabaseClient.from('hero_slides').delete().eq('id', id);
+                showToast("Slide deleted.");
+                fetchSupabaseData();
+            }
+        }
+
+        window.onload = function() {
+            checkAuth();
+        };
     </script>
 </body>
 </html>

@@ -157,16 +157,13 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// Global Delete Handler
 async function deleteRecord(table, id) {
-    if(confirm('Delete this record permanently?')) {
-        const { error } = await supabaseClient.from(table).delete().eq('id', id);
-        if(!error) {
-            showToast('Deleted successfully.');
-            fetchSupabaseData();
-        } else {
-            alert('Delete failed: ' + error.message);
-        }
+    const { error } = await supabaseClient.from(table).delete().eq('id', id);
+    if(!error) {
+        showToast('Deleted successfully.');
+        fetchSupabaseData();
+    } else {
+        alert('Delete failed: ' + error.message);
     }
 }
 

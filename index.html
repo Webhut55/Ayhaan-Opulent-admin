@@ -469,6 +469,67 @@
         </div>
     </div>
 
+    <!-- Order Details Modal -->
+    <div id="order-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
+            <button type="button" onclick="closeModal('order-modal')" class="absolute top-4 right-4 text-textLight hover:text-danger transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex items-center justify-between mb-5 pr-8">
+                <h3 class="font-serif text-2xl font-bold text-sidebarBg">Order <span id="od-order-id"></span></h3>
+                <span id="od-status-badge" class="px-3 py-1 rounded-full text-[10px] font-bold bg-goldPale text-sidebarBg"></span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5 text-xs">
+                <div class="bg-brandBg p-3 rounded-xl border border-lineColor">
+                    <p class="text-[10px] uppercase font-bold text-textLight mb-1">Customer</p>
+                    <p id="od-customer-name" class="font-semibold text-textDark"></p>
+                    <p id="od-customer-phone" class="text-textLight"></p>
+                    <p id="od-customer-email" class="text-textLight"></p>
+                </div>
+                <div class="bg-brandBg p-3 rounded-xl border border-lineColor">
+                    <p class="text-[10px] uppercase font-bold text-textLight mb-1">Shipping Address</p>
+                    <p id="od-address" class="text-textDark whitespace-pre-line"></p>
+                    <p id="od-instructions" class="text-textLight italic mt-1"></p>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <p class="text-[10px] uppercase font-bold text-textLight mb-2">Order Items</p>
+                <div id="od-items" class="space-y-2"></div>
+            </div>
+
+            <div class="border-t border-lineColor pt-4 mb-5 text-xs space-y-1.5">
+                <div class="flex justify-between text-textLight"><span>Subtotal</span><span>₹<span id="od-subtotal"></span></span></div>
+                <div class="flex justify-between text-textLight"><span>Shipping Fee <span id="od-weight" class="text-[10px]"></span></span><span>₹<span id="od-shipping-fee"></span></span></div>
+                <div class="flex justify-between text-textLight"><span>Payment</span><span id="od-payment" class="font-semibold"></span></div>
+                <div class="flex justify-between items-center pt-2 border-t border-lineColor text-sm">
+                    <span class="text-textDark font-semibold">Total Paid</span>
+                    <span class="font-serif text-xl font-bold text-goldDeep">₹<span id="od-total"></span></span>
+                </div>
+            </div>
+
+            <div class="p-4 bg-brandBg rounded-xl border border-lineColor space-y-3">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-textLight">Update Fulfillment Status</p>
+                <select id="od-status-select" onchange="toggleTrackingField()" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <div id="od-tracking-wrap" class="hidden">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Tracking Number (Optional)</label>
+                    <input type="text" id="od-tracking" placeholder="e.g. AWB123456789" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                </div>
+                <button onclick="submitOrderStatusUpdate()" class="w-full py-3 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition">
+                    Save Status
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-[3000] hidden items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-sm rounded-2xl p-6 text-center shadow-2xl border-t-4 border-danger">
@@ -496,6 +557,7 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let globalOrders = [];
+        let globalOrderItems = {};
         let globalProducts = [];
         let globalCategories = [];
         let globalSlides = [];
@@ -624,11 +686,12 @@
 
         async function fetchSupabaseData() {
             try {
-                const [prodsRes, catsRes, slidesRes, ordersRes] = await Promise.all([
+                const [prodsRes, catsRes, slidesRes, ordersRes, orderItemsRes] = await Promise.all([
                     supabaseClient.from('products').select('*'),
                     supabaseClient.from('categories').select('*'),
                     supabaseClient.from('hero_slides').select('*'),
-                    supabaseClient.from('orders').select('*').order('created_at', { ascending: false })
+                    supabaseClient.from('orders').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('order_items').select('*')
                 ]);
 
                 if (!prodsRes.error) {
@@ -642,6 +705,17 @@
                 if (!catsRes.error) globalCategories = catsRes.data || []; else console.error("Categories fetch error:", catsRes.error.message);
                 if (!slidesRes.error) globalSlides = slidesRes.data || []; else console.error("Slides fetch error:", slidesRes.error.message);
                 if (!ordersRes.error) globalOrders = ordersRes.data || []; else console.error("Orders fetch error:", ordersRes.error.message);
+
+                // Group order_items by order_id so each order's line items are a quick lookup.
+                globalOrderItems = {};
+                if (!orderItemsRes.error) {
+                    (orderItemsRes.data || []).forEach(item => {
+                        if (!globalOrderItems[item.order_id]) globalOrderItems[item.order_id] = [];
+                        globalOrderItems[item.order_id].push(item);
+                    });
+                } else {
+                    console.error("Order items fetch error:", orderItemsRes.error.message);
+                }
 
                 document.getElementById('stat-products').textContent = globalProducts.length;
                 document.getElementById('stat-categories').textContent = globalCategories.length;
@@ -770,9 +844,48 @@
             }).join('');
         }
 
+        // checkout.html writes order_status as lowercase ('pending', 'paid'/'confirmed' etc
+        // come from payment_status separately) — normalize for matching/display.
+        function statusBadgeClass(status) {
+            switch ((status || 'pending').toLowerCase()) {
+                case 'approved': return 'bg-sky-100 text-sky-700';
+                case 'shipped': return 'bg-blue-100 text-blue-700';
+                case 'delivered': return 'bg-emerald-100 text-emerald-700';
+                case 'cancelled': return 'bg-danger/10 text-danger';
+                default: return 'bg-goldPale text-sidebarBg';
+            }
+        }
+
+        function paymentBadgeClass(payStatus) {
+            switch ((payStatus || 'pending').toLowerCase()) {
+                case 'paid': case 'completed': case 'success': return 'text-emerald-700';
+                case 'failed': return 'text-danger';
+                default: return 'text-goldDeep';
+            }
+        }
+
+        function titleCase(str) {
+            const s = (str || 'pending');
+            return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+        }
+
         function renderOrders(items = globalOrders) {
             const table = document.getElementById('orders-table');
             const cards = document.getElementById('orders-cards');
+
+            const navBadge = document.getElementById('nav-order-count');
+            if (navBadge) {
+                const pendingCount = globalOrders.filter(o => {
+                    const s = (o.order_status || 'pending').toLowerCase();
+                    return s === 'pending' || s === 'approved';
+                }).length;
+                if (pendingCount > 0) {
+                    navBadge.textContent = pendingCount;
+                    navBadge.classList.remove('hidden');
+                } else {
+                    navBadge.classList.add('hidden');
+                }
+            }
 
             if (items.length === 0) {
                 const empty = `<p class="col-span-full text-center text-xs text-textLight py-8">No order transactions found.</p>`;
@@ -784,13 +897,13 @@
             if (table) {
                 table.innerHTML = items.map(o => `
                     <tr class="hover:bg-brandBg/50 transition">
-                        <td class="p-4 font-bold text-sidebarBg">#${o.id ? o.id.toString().substring(0,8) : 'ORD'}</td>
+                        <td class="p-4 font-bold text-sidebarBg">${o.order_number || ('#' + (o.id ? o.id.toString().substring(0,8) : 'ORD'))}</td>
                         <td class="p-4 font-medium">${o.customer_name || 'Guest Customer'}<br><span class="text-[10px] text-textLight">${o.customer_phone || ''}</span></td>
                         <td class="p-4 font-bold text-goldDeep">₹${Number(o.total_amount || 0).toLocaleString('en-IN')}</td>
-                        <td class="p-4 font-semibold text-emerald-700">${o.payment_status || 'Paid'}</td>
-                        <td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold bg-goldPale text-sidebarBg">${o.status || 'Processing'}</span></td>
+                        <td class="p-4 font-semibold ${paymentBadgeClass(o.payment_status)}">${titleCase(o.payment_status)}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusBadgeClass(o.order_status)}">${titleCase(o.order_status)}</span></td>
                         <td class="p-4 text-right">
-                            <button onclick="updateOrderStatus('${o.id}')" class="px-3 py-1 bg-sidebarBg text-white text-[10px] font-semibold uppercase rounded hover:bg-gold transition">Status</button>
+                            <button onclick="openOrderDetails('${o.id}')" class="px-3 py-1 bg-sidebarBg text-white text-[10px] font-semibold uppercase rounded hover:bg-gold transition">View / Update</button>
                         </td>
                     </tr>
                 `).join('');
@@ -800,20 +913,115 @@
                 cards.innerHTML = items.map(o => `
                     <div class="bg-white p-4 rounded-xl border border-lineColor shadow-sm space-y-2">
                         <div class="flex justify-between items-center border-b border-lineColor pb-2">
-                            <span class="font-bold text-sidebarBg text-xs">#${o.id ? o.id.toString().substring(0,8) : 'ORD'}</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-goldPale text-sidebarBg">${o.status || 'Processing'}</span>
+                            <span class="font-bold text-sidebarBg text-xs">${o.order_number || ('#' + (o.id ? o.id.toString().substring(0,8) : 'ORD'))}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusBadgeClass(o.order_status)}">${titleCase(o.order_status)}</span>
                         </div>
                         <p class="text-xs font-semibold text-textDark">${o.customer_name || 'Guest Customer'}</p>
                         <p class="text-xs font-bold text-goldDeep">Total: ₹${Number(o.total_amount || 0).toLocaleString('en-IN')}</p>
+                        <button onclick="openOrderDetails('${o.id}')" class="w-full py-1.5 bg-sidebarBg text-white text-[10px] font-semibold uppercase rounded hover:bg-gold transition">View / Update</button>
                     </div>
                 `).join('');
             }
+        }
+
+        let currentOrderId = null;
+
+        function openOrderDetails(id) {
+            const order = globalOrders.find(o => String(o.id) === String(id));
+            if (!order) return;
+            currentOrderId = order.id;
+
+            document.getElementById('od-order-id').textContent = order.order_number || ('#' + (order.id ? order.id.toString().substring(0, 8) : 'ORD'));
+            const badge = document.getElementById('od-status-badge');
+            badge.textContent = titleCase(order.order_status);
+            badge.className = 'px-3 py-1 rounded-full text-[10px] font-bold ' + statusBadgeClass(order.order_status);
+
+            document.getElementById('od-customer-name').textContent = order.customer_name || 'Guest Customer';
+            document.getElementById('od-customer-phone').textContent = order.customer_phone || '';
+            document.getElementById('od-customer-email').textContent = order.customer_email || '';
+
+            // shipping_address is a jsonb object: {house, street, city, district, state, pin, country, instructions}
+            let addr = order.shipping_address || {};
+            if (typeof addr === 'string') {
+                try { addr = JSON.parse(addr); } catch (e) { addr = {}; }
+            }
+            const addrLines = [
+                [addr.house, addr.street].filter(Boolean).join(', '),
+                [addr.city, addr.district].filter(Boolean).join(', '),
+                [addr.state, addr.pin].filter(Boolean).join(' - '),
+                addr.country
+            ].filter(Boolean).join('\n');
+            document.getElementById('od-address').textContent = addrLines || 'No address on file';
+            document.getElementById('od-instructions').textContent = addr.instructions ? ('Instructions: ' + addr.instructions) : '';
+
+            // Line items live in the separate order_items table, grouped by order_id in fetchSupabaseData.
+            const items = globalOrderItems[order.id] || [];
+            const itemsWrap = document.getElementById('od-items');
+            if (items.length > 0) {
+                itemsWrap.innerHTML = items.map(it => `
+                    <div class="flex items-center justify-between bg-white border border-lineColor rounded-lg p-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <img src="${it.product_image || 'https://placehold.co/60x60/EFE4CE/636B2F?text=%20'}" class="w-10 h-10 object-cover rounded border border-lineColor bg-lightGold">
+                            <div>
+                                <p class="font-semibold text-textDark text-xs">${it.product_name || 'Item'}</p>
+                                <p class="text-[10px] text-textLight">${it.selected_size ? 'Size: ' + it.selected_size + ' &nbsp;·&nbsp; ' : ''}Qty: ${it.quantity || 1}</p>
+                            </div>
+                        </div>
+                        <span class="font-semibold text-goldDeep text-xs">₹${Number(it.total_price || (it.unit_price || 0) * (it.quantity || 1)).toLocaleString('en-IN')}</span>
+                    </div>
+                `).join('');
+            } else {
+                itemsWrap.innerHTML = `<p class="text-xs text-textLight italic">No line items found for this order.</p>`;
+            }
+
+            document.getElementById('od-payment').textContent = titleCase(order.payment_status);
+            document.getElementById('od-subtotal').textContent = Number(order.subtotal || 0).toLocaleString('en-IN');
+            document.getElementById('od-shipping-fee').textContent = Number(order.shipping_fee || 0).toLocaleString('en-IN');
+            document.getElementById('od-weight').textContent = order.total_weight_kg != null ? ('(' + order.total_weight_kg + ' kg)') : '';
+            document.getElementById('od-total').textContent = Number(order.total_amount || 0).toLocaleString('en-IN');
+
+            document.getElementById('od-status-select').value = (order.order_status || 'pending').toLowerCase();
+            document.getElementById('od-tracking').value = order.tracking_number || '';
+            toggleTrackingField();
+
+            openModal('order-modal');
+        }
+
+        function toggleTrackingField() {
+            const val = document.getElementById('od-status-select').value;
+            document.getElementById('od-tracking-wrap').classList.toggle('hidden', val !== 'shipped');
+        }
+
+        async function submitOrderStatusUpdate() {
+            if (!currentOrderId) return;
+            const status = document.getElementById('od-status-select').value;
+            const tracking = document.getElementById('od-tracking').value.trim();
+
+            const payload = { order_status: status };
+            if (status === 'shipped' && tracking) payload.tracking_number = tracking;
+
+            let { error } = await supabaseClient.from('orders').update(payload).eq('id', currentOrderId);
+
+            // Fallback in case the orders table has no tracking_number column yet —
+            // still save the status change rather than failing the whole update.
+            if (error && payload.tracking_number !== undefined) {
+                ({ error } = await supabaseClient.from('orders').update({ order_status: status }).eq('id', currentOrderId));
+            }
+
+            if (error) {
+                alert('Error updating order: ' + error.message);
+                return;
+            }
+            showToast('Order marked as ' + titleCase(status));
+            closeModal('order-modal');
+            fetchSupabaseData();
         }
 
         function filterOrders() {
             const query = document.getElementById('order-search').value.toLowerCase();
             const filtered = globalOrders.filter(o => 
                 (o.customer_name && o.customer_name.toLowerCase().includes(query)) ||
+                (o.order_number && o.order_number.toLowerCase().includes(query)) ||
                 (o.id && o.id.toString().toLowerCase().includes(query))
             );
             renderOrders(filtered);

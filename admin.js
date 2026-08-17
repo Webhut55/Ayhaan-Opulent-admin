@@ -53,9 +53,9 @@ async function fetchSupabaseData() {
 // 1. Hero Slides
 async function loadHeroSlides() {
     const { data: slides, error } = await supabaseClient.from('hero_slides').select('*');
-    if(error) { console.error('Error fetching slides:', error.message); return; }
+    if(error) console.warn('Hero slides fetch warning:', error.message);
     
-    if(slides) {
+    if(slides && slides.length > 0) {
         document.getElementById('stat-slides').textContent = slides.length;
         document.getElementById('slides-grid').innerHTML = slides.map(s => `
             <div class="bg-white border border-gray-200 p-4 shadow-sm relative group">
@@ -74,9 +74,9 @@ async function loadHeroSlides() {
 // 2. Collections (Categories)
 async function loadCategories() {
     const { data: cats, error } = await supabaseClient.from('categories').select('*');
-    if(error) { console.error('Error fetching categories:', error.message); return; }
+    if(error) console.warn('Categories fetch warning:', error.message);
 
-    if(cats) {
+    if(cats && cats.length > 0) {
         document.getElementById('stat-categories').textContent = cats.length;
         
         // Populate select dropdown in Product modal
@@ -100,13 +100,13 @@ async function loadCategories() {
 // 3. Products (Jewelry Portfolio)
 async function loadProducts() {
     const { data: prods, error } = await supabaseClient.from('products').select('*');
-    if(error) { console.error('Error fetching products:', error.message); return; }
+    if(error) console.warn('Products fetch warning:', error.message);
 
-    if(prods) {
+    if(prods && prods.length > 0) {
         document.getElementById('stat-products').textContent = prods.length;
         document.getElementById('products-table').innerHTML = prods.map(p => `
             <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4"><img src="${p.image1 || p.imageUrl || ''}" class="w-10 h-10 object-cover rounded bg-lightGold border"></td>
+                <td class="px-6 py-4"><img src="${p.image_url || p.image1 || p.imageUrl || ''}" class="w-10 h-10 object-cover rounded bg-lightGold border"></td>
                 <td class="px-6 py-4 font-serif font-bold text-dark">${p.name}</td>
                 <td class="px-6 py-4 text-xs text-gray-500 uppercase tracking-wide">${p.category}</td>
                 <td class="px-6 py-4 font-semibold text-primary">₹${p.price}</td>
@@ -193,7 +193,7 @@ window.editProduct = function(prod) {
     document.getElementById('p-name').value = prod.name;
     document.getElementById('p-price').value = prod.price;
     document.getElementById('p-category').value = prod.category;
-    const imgUrl = prod.image1 || prod.image_url || prod.imageUrl || '';
+    const imgUrl = prod.image_url || prod.image1 || prod.imageUrl || '';
     document.getElementById('p-image-preview').src = imgUrl;
     document.getElementById('p-image-base64').value = imgUrl;
     openModal('product-modal');
@@ -258,7 +258,7 @@ document.getElementById('product-form').addEventListener('submit', async (e) => 
         name: document.getElementById('p-name').value,
         price: parseFloat(document.getElementById('p-price').value),
         category: document.getElementById('p-category').value,
-        image1: document.getElementById('p-image-base64').value
+        image_url: document.getElementById('p-image-base64').value // storefront reads image_url, not image1
     };
     
     if(!id) payload.id = crypto.randomUUID();

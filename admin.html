@@ -1,0 +1,2637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ayhaan Opulent | Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandBg: '#FDFBF7',
+                        sidebarBg: 'rgb(158, 106, 104)',
+                        sidebarBgDark: 'rgb(130, 84, 82)',
+                        gold: '#C5A059',
+                        goldDeep: '#A9824A',
+                        goldPale: '#EFE4CE',
+                        textDark: '#2A2626',
+                        textLight: '#7A7571',
+                        lineColor: '#E8E2D8',
+                        danger: '#B5473C'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Cormorant Garamond', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #FDFBF7;
+            --sidebar-bg: rgb(158, 106, 104);
+            --gold: #C5A059;
+            --gold-deep: #A9824A;
+            --gold-pale: #EFE4CE;
+            --text-dark: #2A2626;
+            --text-light: #7A7571;
+            --line: #E8E2D8;
+            --danger: #B5473C;
+        }
+
+        * { -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: var(--text-dark); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); }
+        ::-webkit-scrollbar-thumb { background: rgba(158, 106, 104, 0.3); border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+        .mobile-drawer {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateX(-100%);
+        }
+        .mobile-drawer.open { transform: translateX(0); }
+        
+        .drawer-backdrop {
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+
+        .tab-content { display: none; animation: fadeUp 0.35s ease-out forwards; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-input:focus { border-bottom-color: var(--gold); }
+    </style>
+</head>
+<body class="min-h-screen antialiased flex flex-col justify-between selection:bg-goldPale selection:text-textDark">
+
+    <div id="auth-overlay" class="fixed inset-0 bg-brandBg/95 backdrop-blur-md z-[1000] flex items-center justify-center p-4">
+        <div class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl w-full max-w-md text-center border-t-4 border-gold">
+            <h1 class="font-serif text-3xl md:text-4xl text-sidebarBg font-semibold mb-1">ayhaan <span class="italic text-gold">Opulent</span></h1>
+            <p class="text-xs uppercase tracking-[0.25em] text-textLight font-medium mb-8">Management Portal</p>
+            
+            <div class="space-y-4">
+                <input type="password" id="pin-input" class="auth-input w-full p-3 text-center text-2xl tracking-[0.4em] border-b-2 border-lineColor outline-none transition bg-transparent" placeholder="••••">
+                <button id="login-btn" class="w-full py-3.5 px-6 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-widest rounded-lg transition-all duration-300 shadow-md hover:shadow-lg active:scale-95">
+                    Authenticate
+                </button>
+            </div>
+            <p id="auth-error" class="text-danger text-xs mt-4 hidden font-medium">Invalid access PIN provided.</p>
+        </div>
+    </div>
+
+    <div id="admin-app" class="hidden min-h-screen flex-col md:flex-row w-full overflow-hidden">
+        
+        <!-- Mobile Top Header -->
+        <header class="md:hidden bg-sidebarBg text-white px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-md border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <button id="mobile-menu-btn" class="p-2 -ml-2 rounded-lg hover:bg-white/10 text-white transition focus:outline-none" aria-label="Toggle navigation menu">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <div>
+                    <h2 class="font-serif text-xl font-bold tracking-wider leading-none">ayhaan</h2>
+                    <span id="mobile-page-title" class="text-[10px] text-goldPale tracking-widest uppercase font-semibold">Overview</span>
+                </div>
+            </div>
+            
+            <button onclick="lockSystem()" class="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition" title="Secure Lock">
+                <i data-lucide="lock" class="w-5 h-5"></i>
+            </button>
+        </header>
+
+        <div id="drawer-backdrop" class="drawer-backdrop fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"></div>
+
+        <!-- Sidebar Drawer -->
+        <aside id="sidebar-drawer" class="mobile-drawer md:transform-none fixed md:relative inset-y-0 left-0 w-[270px] lg:w-[290px] bg-sidebarBg text-white z-50 md:z-10 flex flex-col shadow-2xl md:shadow-md h-full shrink-0">
+            
+            <div class="px-6 py-6 border-b border-white/10 flex items-center justify-between">
+                <div class="text-left">
+                    <h2 class="font-serif text-2xl font-bold tracking-widest text-white">ayhaan</h2>
+                    <span class="text-[10px] uppercase tracking-[0.25em] text-goldPale font-semibold">Admin Panel</span>
+                </div>
+                <button id="drawer-close-btn" class="md:hidden text-white/70 hover:text-white p-2 rounded-lg hover:bg-white/10 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
+                <button class="nav-link active w-full flex items-center gap-3.5 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm font-medium transition-all text-left border-l-4 border-transparent" data-target="dashboard" data-title="Overview">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 shrink-0 text-gold"></i>
+                    <span>Boutique Overview</span>
+                </button>
+
+                <button class="nav-link w-full flex items-center gap-3.5 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm font-medium transition-all text-left border-l-4 border-transparent" data-target="hero-slider" data-title="Hero Presentations">
+                    <i data-lucide="monitor-play" class="w-5 h-5 shrink-0 text-gold"></i>
+                    <span>Hero Slides</span>
+                </button>
+
+                <button class="nav-link w-full flex items-center gap-3.5 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm font-medium transition-all text-left border-l-4 border-transparent" data-target="orders" data-title="Order Management">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 shrink-0 text-gold"></i>
+                    <div class="flex-1 flex justify-between items-center">
+                        <span>Orders</span>
+                        <span id="nav-order-count" class="bg-gold/20 text-goldPale text-[10px] px-2 py-0.5 rounded-full font-bold hidden">0</span>
+                    </div>
+                </button>
+
+                <button class="nav-link w-full flex items-center gap-3.5 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm font-medium transition-all text-left border-l-4 border-transparent" data-target="products" data-title="Jewelry Portfolio">
+                    <i data-lucide="gem" class="w-5 h-5 shrink-0 text-gold"></i>
+                    <span>Jewelry Portfolio</span>
+                </button>
+
+                <button class="nav-link w-full flex items-center gap-3.5 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm font-medium transition-all text-left border-l-4 border-transparent" data-target="categories" data-title="Collections">
+                    <i data-lucide="layers" class="w-5 h-5 shrink-0 text-gold"></i>
+                    <span>Collections</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-white/10 bg-sidebarBgDark/40">
+                <button onclick="lockSystem()" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-white/5 hover:bg-white/15 text-white/80 hover:text-white text-xs font-semibold uppercase tracking-wider transition">
+                    <i data-lucide="lock" class="w-4 h-4"></i>
+                    <span>Secure Lock</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content View -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 bg-brandBg min-h-screen">
+            
+            <section id="dashboard" class="tab-content active space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-2">
+                    <div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Boutique Overview</h1>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Manage your luxury jewelry portfolio connected to Supabase.</p>
+                    </div>
+                    <button onclick="fetchSupabaseData()" class="self-start sm:self-auto inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-lineColor rounded-lg text-xs font-semibold text-textDark hover:bg-goldPale/30 transition shadow-sm">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-gold"></i> Refresh Data
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+                    <div class="bg-white p-5 rounded-2xl border border-lineColor shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center text-textLight mb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider">Pieces</span>
+                            <i data-lucide="gem" class="w-5 h-5 text-gold"></i>
+                        </div>
+                        <div class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg" id="stat-products">0</div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-lineColor shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center text-textLight mb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider">Collections</span>
+                            <i data-lucide="layers" class="w-5 h-5 text-sky-600"></i>
+                        </div>
+                        <div class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg" id="stat-categories">0</div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-lineColor shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center text-textLight mb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider">Hero Slides</span>
+                            <i data-lucide="monitor-play" class="w-5 h-5 text-emerald-600"></i>
+                        </div>
+                        <div class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg" id="stat-slides">0</div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-lineColor shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center text-textLight mb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider">Total Orders</span>
+                            <i data-lucide="shopping-bag" class="w-5 h-5 text-amber-600"></i>
+                        </div>
+                        <div class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg" id="stat-orders">0</div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-sidebarBg to-sidebarBgDark rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-serif text-2xl font-semibold">Store Catalog Management</h3>
+                        <p class="text-xs text-white/80 mt-1 max-w-xl">Upload fine jewelry imagery, manage multi-category assignments, and curate your collections.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5">
+                        <button onclick="switchTab('products'); openNewProduct();" class="px-4 py-2.5 bg-gold hover:bg-goldDeep text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition shadow">
+                            + Add Piece
+                        </button>
+                        <button onclick="switchTab('categories'); openModal('category-modal');" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition border border-white/20">
+                            + Collection
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hero Slider -->
+            <section id="hero-slider" class="tab-content space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-3">
+                    <div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Hero Presentations</h1>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Manage sliding showcase banners displayed on your storefront landing page.</p>
+                    </div>
+                    <button onclick="openModal('slide-modal')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gold hover:bg-goldDeep text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition shadow-sm self-start sm:self-auto">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add Slide
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" id="slides-grid"></div>
+            </section>
+
+            <!-- Orders -->
+            <section id="orders" class="tab-content space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-3">
+                    <div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Order Management</h1>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Track payments, order status updates, and customer details.</p>
+                    </div>
+                    <div class="relative w-full sm:w-64">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-textLight"></i>
+                        <input type="text" id="order-search" oninput="filterOrders()" placeholder="Search order # or customer..." class="w-full pl-9 pr-4 py-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                    </div>
+                </div>
+
+                <div id="orders-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:hidden"></div>
+
+                <div class="hidden lg:block bg-white rounded-2xl border border-lineColor shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-goldPale/60 uppercase tracking-wider text-textDark font-semibold border-b border-lineColor">
+                                <tr>
+                                    <th class="p-4">Order #</th>
+                                    <th class="p-4">Customer</th>
+                                    <th class="p-4">Total</th>
+                                    <th class="p-4">Payment</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table" class="divide-y divide-lineColor"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="products" class="tab-content space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-3">
+                    <div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Jewelry Portfolio</h1>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Manage individual fine pieces, pricing, and multi-category assignments.</p>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="relative flex-1 sm:w-48">
+                            <input type="text" id="product-search" oninput="filterProducts()" placeholder="Search piece..." class="w-full px-3 py-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                        </div>
+                        <button onclick="openNewProduct()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gold hover:bg-goldDeep text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition shadow-sm">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add Piece
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5"></div>
+            </section>
+
+            <!-- Categories -->
+            <section id="categories" class="tab-content space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-3">
+                    <div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Collections</h1>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Organize pieces into elegant luxury thematic collections.</p>
+                    </div>
+                    <button onclick="openModal('category-modal')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gold hover:bg-goldDeep text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition shadow-sm self-start sm:self-auto">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add Collection
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6" id="categories-grid"></div>
+            </section>
+
+        </main>
+    </div>
+
+    
+    <!-- Slide Modal -->
+    <div id="slide-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
+            <button type="button" onclick="closeModal('slide-modal')" class="absolute top-4 right-4 text-textLight hover:text-danger transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="font-serif text-2xl font-bold text-sidebarBg mb-4">Manage Slide Presentation</h3>
+            <form id="slide-form" class="space-y-4">
+                <input type="hidden" id="s-id">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Primary Title</label>
+                    <input type="text" id="s-title" required class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Subtitle (Optional)</label>
+                    <input type="text" id="s-subtitle" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Hero Background Image</label>
+                    <div class="flex items-center gap-4 mt-1">
+                        <img id="s-image-preview" class="w-20 h-20 object-cover rounded-lg border border-lineColor bg-brandBg shrink-0" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Preview">
+                        <label class="px-4 py-2 bg-brandBg border border-lineColor hover:border-gold text-xs uppercase tracking-wider font-semibold rounded-lg cursor-pointer transition">
+                            Choose Image
+                            <input type="file" accept="image/*" class="hidden" onchange="encodeImage(this, 's-image-preview', 's-image-base64')">
+                        </label>
+                    </div>
+                    <input type="hidden" id="s-image-base64" required>
+                </div>
+                <button type="submit" class="w-full py-3 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition mt-2">
+                    Save Presentation
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="category-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
+            <button type="button" onclick="closeModal('category-modal')" class="absolute top-4 right-4 text-textLight hover:text-danger transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="font-serif text-2xl font-bold text-sidebarBg mb-4">Manage Collection</h3>
+            <form id="category-form" class="space-y-4">
+                <input type="hidden" id="c-id">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Collection Name</label>
+                    <input type="text" id="c-name" required class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Collection Thumbnail</label>
+                    <div class="flex items-center gap-4 mt-1">
+                        <img id="c-image-preview" class="w-20 h-20 rounded-full object-cover border border-lineColor bg-brandBg shrink-0" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Preview">
+                        <label class="px-4 py-2 bg-brandBg border border-lineColor hover:border-gold text-xs uppercase tracking-wider font-semibold rounded-lg cursor-pointer transition">
+                            Upload Image
+                            <input type="file" accept="image/*" class="hidden" onchange="encodeImage(this, 'c-image-preview', 'c-image-base64')">
+                        </label>
+                    </div>
+                    <input type="hidden" id="c-image-base64" required>
+                </div>
+                <button type="submit" class="w-full py-3 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition mt-2">
+                    Save Collection
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Product Modal with Multi-Category Support (Primary, Secondary, Tertiary) -->
+    <div id="product-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
+            <button type="button" onclick="closeModal('product-modal')" class="absolute top-4 right-4 text-textLight hover:text-danger transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="font-serif text-2xl font-bold text-sidebarBg mb-4">Register Jewelry Piece</h3>
+            <form id="product-form" class="space-y-4">
+                <input type="hidden" id="p-id">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Piece Nomenclature</label>
+                    <input type="text" id="p-name" required class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+                
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Value (₹)</label>
+                    <input type="number" id="p-price" required min="0" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+
+                <div id="p-stock-wrap">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Stock Available</label>
+                    <input type="number" id="p-stock" min="0" step="1" placeholder="e.g. 10" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Size Type</label>
+                    <select id="p-size-type" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                        <option value="">No Sizes (use Stock Available above)</option>
+                        <option value="bangle">Bangle</option>
+                        <option value="ring">Ring</option>
+                    </select>
+                </div>
+
+                <div id="p-sizes-wrap" class="hidden p-3 bg-brandBg rounded-xl border border-lineColor space-y-2">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Stock per Size</label>
+                    <div id="p-sizes-grid" class="grid grid-cols-2 gap-2"></div>
+                </div>
+
+                <!-- Multi-Category Selectors (Assign 1, 2, or 3 categories) -->
+                <div class="p-3 bg-brandBg rounded-xl border border-lineColor space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight">Assigned Collections (Up to 3)</label>
+                        <span class="text-[10px] text-gold font-medium">Multi-Tagging</span>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">Primary Collection *</span>
+                        <select id="p-category-1" required class="w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                            <option value="">Select Primary Collection</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">Secondary Collection (Optional)</span>
+                        <select id="p-category-2" class="w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">Tertiary Collection (Optional)</span>
+                        <select id="p-category-3" class="w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Product Image</label>
+                    <div class="flex items-center gap-4 mt-1">
+                        <img id="p-image-preview" class="w-20 h-20 object-cover rounded-lg border border-lineColor bg-brandBg shrink-0" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Preview">
+                        <label class="px-4 py-2 bg-brandBg border border-lineColor hover:border-gold text-xs uppercase tracking-wider font-semibold rounded-lg cursor-pointer transition">
+                            Upload Image
+                            <input type="file" accept="image/*" class="hidden" onchange="encodeImage(this, 'p-image-preview', 'p-image-base64')">
+                        </label>
+                    </div>
+                    <input type="hidden" id="p-image-base64" required>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition mt-2">
+                    Save Piece
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="order-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
+            <button type="button" onclick="closeModal('order-modal')" class="absolute top-4 right-4 text-textLight hover:text-danger transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex items-center justify-between mb-5 pr-8">
+                <h3 class="font-serif text-2xl font-bold text-sidebarBg">Order <span id="od-order-id"></span></h3>
+                <span id="od-status-badge" class="px-3 py-1 rounded-full text-[10px] font-bold bg-goldPale text-sidebarBg"></span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5 text-xs">
+                <div class="bg-brandBg p-3 rounded-xl border border-lineColor">
+                    <p class="text-[10px] uppercase font-bold text-textLight mb-1">Customer</p>
+                    <p id="od-customer-name" class="font-semibold text-textDark"></p>
+                    <p id="od-customer-phone" class="text-textLight"></p>
+                    <p id="od-customer-email" class="text-textLight"></p>
+                </div>
+                <div class="bg-brandBg p-3 rounded-xl border border-lineColor">
+                    <p class="text-[10px] uppercase font-bold text-textLight mb-1">Shipping Address</p>
+                    <p id="od-address" class="text-textDark whitespace-pre-line"></p>
+                    <p id="od-instructions" class="text-textLight italic mt-1"></p>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <p class="text-[10px] uppercase font-bold text-textLight mb-2">Order Items</p>
+                <div id="od-items" class="space-y-2"></div>
+            </div>
+
+            <div class="border-t border-lineColor pt-4 mb-5 text-xs space-y-1.5">
+                <div class="flex justify-between text-textLight"><span>Subtotal</span><span>₹<span id="od-subtotal"></span></span></div>
+                <div class="flex justify-between text-textLight"><span>Shipping Fee <span id="od-weight" class="text-[10px]"></span></span><span>₹<span id="od-shipping-fee"></span></span></div>
+                <div class="flex justify-between text-textLight"><span>Payment</span><span id="od-payment" class="font-semibold"></span></div>
+                <div class="flex justify-between items-center pt-2 border-t border-lineColor text-sm">
+                    <span class="text-textDark font-semibold">Total Paid</span>
+                    <span class="font-serif text-xl font-bold text-goldDeep">₹<span id="od-total"></span></span>
+                </div>
+            </div>
+
+            <div class="p-4 bg-brandBg rounded-xl border border-lineColor space-y-3">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-textLight">Update Fulfillment Status</p>
+                <select id="od-status-select" onchange="toggleTrackingField()" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <div id="od-tracking-wrap" class="hidden">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Tracking Number (Optional)</label>
+                    <input type="text" id="od-tracking" placeholder="e.g. AWB123456789" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                </div>
+                <button onclick="submitOrderStatusUpdate()" class="w-full py-3 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition">
+                    Save Status
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-[3000] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 text-center shadow-2xl border-t-4 border-danger">
+            <i data-lucide="alert-triangle" class="w-12 h-12 text-danger mx-auto mb-3"></i>
+            <h4 id="confirm-title" class="font-serif text-xl font-bold text-sidebarBg mb-1">Confirm Action</h4>
+            <p id="confirm-msg" class="text-xs text-textLight mb-6">Are you sure you want to remove this item?</p>
+            <div class="flex gap-3">
+                <button id="confirm-cancel-btn" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-textDark text-xs font-semibold uppercase tracking-wider rounded-lg transition">Cancel</button>
+                <button id="confirm-ok-btn" class="flex-1 py-2.5 bg-danger hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition shadow">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-toast" class="fixed bottom-6 right-6 left-6 sm:left-auto bg-sidebarBg text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 z-[4000] transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-gold shrink-0"></i>
+        <span id="toast-msg" class="text-xs font-semibold tracking-wide">Action executed successfully.</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+        lucide.createIcons();
+
+        const SUPABASE_URL = "https://orjxoslyjonedljqnzgu.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yanhvc2x5am9uZWRsanFuemd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMTMzMjAsImV4cCI6MjEwMTY4OTMyMH0.dWvnC8CkaUg-uNw2S0rNKklBOwx3ai6bMdI-ZA3RG3I";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let globalOrders = [];
+        let globalOrderItems = {};
+        let globalProducts = [];
+        let globalCategories = [];
+        let globalSlides = [];
+
+        // Fixed size ladders for sized jewelry pieces.
+        const SIZE_OPTIONS = {
+            bangle: ['2.2', '2.4', '2.6', '2.8'],
+            ring: ['5', '6', '7', '8']
+        };
+
+        function renderSizeInputs(type, existingSizes) {
+            const stockWrap = document.getElementById('p-stock-wrap');
+            const sizesWrap = document.getElementById('p-sizes-wrap');
+            const sizesGrid = document.getElementById('p-sizes-grid');
+
+            if (!type || !SIZE_OPTIONS[type]) {
+                sizesWrap.classList.add('hidden');
+                sizesGrid.innerHTML = '';
+                stockWrap.classList.remove('hidden');
+                return;
+            }
+
+            stockWrap.classList.add('hidden');
+            sizesWrap.classList.remove('hidden');
+
+            sizesGrid.innerHTML = SIZE_OPTIONS[type].map(s => {
+                const existing = (existingSizes || []).find(x => x.size === s);
+                const val = existing ? existing.stock : '';
+                const label = type === 'ring' ? `Ring Size ${s}` : `Bangle Size ${s}`;
+                return `
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">${label}</span>
+                        <input type="number" min="0" step="1" data-size="${s}" value="${val}" placeholder="Stock" class="p-size-stock-input w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                    </div>`;
+            }).join('');
+        }
+
+        document.getElementById('p-size-type').addEventListener('change', (e) => {
+            renderSizeInputs(e.target.value, null);
+        });
+
+        function showToast(message) {
+            const toast = document.getElementById('admin-toast');
+            document.getElementById('toast-msg').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        const authOverlay = document.getElementById('auth-overlay');
+        const adminApp = document.getElementById('admin-app');
+        const pinInput = document.getElementById('pin-input');
+        const loginBtn = document.getElementById('login-btn');
+        const authError = document.getElementById('auth-error');
+
+        function checkAuth() {
+            if (sessionStorage.getItem('ao_admin_auth') === 'true') {
+                authOverlay.style.display = 'none';
+                adminApp.classList.remove('hidden');
+                adminApp.classList.add('flex');
+                fetchSupabaseData();
+            }
+        }
+
+        loginBtn.addEventListener('click', () => {
+            const pin = pinInput.value.trim();
+            if (pin === 'wbht2' || pin === '8590' || pin === '1234') {
+                sessionStorage.setItem('ao_admin_auth', 'true');
+                authError.classList.add('hidden');
+                checkAuth();
+            } else {
+                authError.classList.remove('hidden');
+            }
+        });
+
+        function lockSystem() {
+            sessionStorage.removeItem('ao_admin_auth');
+            location.reload();
+        }
+
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const drawerCloseBtn = document.getElementById('drawer-close-btn');
+        const sidebarDrawer = document.getElementById('sidebar-drawer');
+        const drawerBackdrop = document.getElementById('drawer-backdrop');
+
+        function openDrawer() {
+            sidebarDrawer.classList.add('open');
+            drawerBackdrop.classList.add('open');
+        }
+
+        function closeDrawer() {
+            sidebarDrawer.classList.remove('open');
+            drawerBackdrop.classList.remove('open');
+        }
+
+        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openDrawer);
+        if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeDrawer);
+        if (drawerBackdrop) drawerBackdrop.addEventListener('click', closeDrawer);
+
+        function switchTab(targetId, title) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active', 'border-gold', 'bg-white/10'));
+
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) targetSection.classList.add('active');
+
+            const activeBtn = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+            if (activeBtn) activeBtn.classList.add('active', 'border-gold', 'bg-white/10');
+
+            if (title) {
+                const mobTitle = document.getElementById('mobile-page-title');
+                if (mobTitle) mobTitle.textContent = title;
+            }
+
+            closeDrawer();
+        }
+
+        document.querySelectorAll('.nav-link').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-target');
+                const title = btn.getAttribute('data-title');
+                switchTab(target, title);
+            });
+        });
+
+        async function fetchSupabaseData() {
+            try {
+                const [prodsRes, catsRes, slidesRes, ordersRes, orderItemsRes] = await Promise.all([
+                    supabaseClient.from('products').select('*'),
+                    supabaseClient.from('categories').select('*'),
+                    supabaseClient.from('hero_slides').select('*'),
+                    supabaseClient.from('orders').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('order_items').select('*')
+                ]);
+
+                if (!prodsRes.error) {
+                    globalProducts = prodsRes.data || [];
+                } else {
+                    console.error("Products fetch error:", prodsRes.error.message);
+                    if (prodsRes.error.message.includes('timeout') || prodsRes.error.message.includes('canceling statement') || prodsRes.error.message.includes('500')) {
+                        startSilentDatabaseOptimization();
+                    }
+                }
+                if (!catsRes.error) globalCategories = catsRes.data || []; else console.error("Categories fetch error:", catsRes.error.message);
+                if (!slidesRes.error) globalSlides = slidesRes.data || []; else console.error("Slides fetch error:", slidesRes.error.message);
+                if (!ordersRes.error) globalOrders = ordersRes.data || []; else console.error("Orders fetch error:", ordersRes.error.message);
+
+                // Group order_items by order_id so each order's line items are a quick lookup.
+                globalOrderItems = {};
+                if (!orderItemsRes.error) {
+                    (orderItemsRes.data || []).forEach(item => {
+                        if (!globalOrderItems[item.order_id]) globalOrderItems[item.order_id] = [];
+                        globalOrderItems[item.order_id].push(item);
+                    });
+                } else {
+                    console.error("Order items fetch error:", orderItemsRes.error.message);
+                }
+
+                document.getElementById('stat-products').textContent = globalProducts.length;
+                document.getElementById('stat-categories').textContent = globalCategories.length;
+                document.getElementById('stat-slides').textContent = globalSlides.length;
+                document.getElementById('stat-orders').textContent = globalOrders.length;
+
+                renderCategoriesOptions();
+                renderProductsGrid();
+                renderCategoriesGrid();
+                renderSlidesGrid();
+                renderOrders();
+
+            } catch (err) {
+                console.error("Data synchronization error:", err);
+            }
+        }
+
+        function renderCategoriesOptions() {
+            const cat1 = document.getElementById('p-category-1');
+            const cat2 = document.getElementById('p-category-2');
+            const cat3 = document.getElementById('p-category-3');
+
+            let options1 = '<option value="">Select Primary Collection</option>';
+            let options2 = '<option value="">None</option>';
+            let options3 = '<option value="">None</option>';
+
+            globalCategories.forEach(c => {
+                options1 += `<option value="${c.name}">${c.name}</option>`;
+                options2 += `<option value="${c.name}">${c.name}</option>`;
+                options3 += `<option value="${c.name}">${c.name}</option>`;
+            });
+
+            if (cat1) cat1.innerHTML = options1;
+            if (cat2) cat2.innerHTML = options2;
+            if (cat3) cat3.innerHTML = options3;
+        }
+
+        function renderProductsGrid(items = globalProducts) {
+            const grid = document.getElementById('products-grid');
+            if (!grid) return;
+
+            if (items.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-xs text-textLight py-8">No jewelry pieces available.</p>`;
+                return;
+            }
+
+            grid.innerHTML = items.map(p => {
+                const img = p.image1 || p.image_url || p.imageUrl || 'https://placehold.co/300x300/EFE4CE/636B2F?text=Piece';
+                const cats = p.category ? String(p.category).split(',').map(c => c.trim()) : ['Collection'];
+                
+                const catPills = cats.map(c => 
+                    `<span class="text-[9px] bg-goldPale text-sidebarBg font-bold px-1.5 py-0.5 rounded-md border border-gold/30">${c}</span>`
+                ).join(' ');
+
+                return `
+                <div class="bg-white rounded-xl border border-lineColor p-3 flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                    <div>
+                        <img src="${img}" alt="${p.name}" class="w-full aspect-square object-cover rounded-lg border border-lineColor mb-2">
+                        <div class="flex flex-wrap gap-1 mb-1.5">${catPills}</div>
+                        <h4 class="font-serif font-bold text-sm text-textDark truncate">${p.name}</h4>
+                        <p class="text-xs font-bold text-goldDeep mt-0.5">₹${Number(p.price).toLocaleString('en-IN')}</p>
+                        ${p.size_type && Array.isArray(p.sizes) && p.sizes.length > 0
+                            ? `<p class="text-[10px] font-semibold mt-0.5 text-textLight">${p.sizes.map(s => `<span class="${Number(s.stock) <= 0 ? 'text-danger' : ''}">${s.size}: ${s.stock}</span>`).join(' &nbsp;•&nbsp; ')}</p>`
+                            : `<p class="text-[10px] font-semibold mt-0.5 ${(p.stock !== undefined && p.stock !== null && Number(p.stock) <= 0) ? 'text-danger' : 'text-textLight'}">${(p.stock !== undefined && p.stock !== null) ? Number(p.stock) + ' in stock' : 'Stock not set'}</p>`
+                        }
+                    </div>
+                    <div class="flex gap-2 mt-3 pt-2 border-t border-lineColor">
+                        <button onclick="editProduct('${p.id}')" class="flex-1 py-1.5 bg-brandBg hover:bg-goldPale text-textDark text-[11px] font-semibold rounded transition">Edit</button>
+                        <button onclick="deleteProduct('${p.id}')" class="py-1.5 px-2.5 bg-danger/10 hover:bg-danger text-danger hover:text-white text-[11px] font-semibold rounded transition">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function filterProducts() {
+            const query = document.getElementById('product-search').value.toLowerCase();
+            const filtered = globalProducts.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                (p.category && p.category.toLowerCase().includes(query))
+            );
+            renderProductsGrid(filtered);
+        }
+
+        function renderCategoriesGrid() {
+            const grid = document.getElementById('categories-grid');
+            if (!grid) return;
+
+            if (globalCategories.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-xs text-textLight py-8">No collections established.</p>`;
+                return;
+            }
+
+            grid.innerHTML = globalCategories.map(c => {
+                const img = c.image_url || c.imageUrl || 'https://placehold.co/300x300/EFE4CE/636B2F?text=Collection';
+                return `
+                <div class="bg-white rounded-xl border border-lineColor p-3 flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                    <div class="text-center">
+                        <img src="${img}" alt="${c.name}" class="w-20 h-20 rounded-full object-cover border border-lineColor mx-auto mb-2">
+                        <h4 class="font-serif font-bold text-sm text-textDark">${c.name}</h4>
+                    </div>
+                    <div class="flex gap-2 mt-3 pt-2 border-t border-lineColor">
+                        <button onclick="deleteCategory('${c.id}')" class="w-full py-1.5 bg-danger/10 hover:bg-danger text-danger hover:text-white text-[11px] font-semibold rounded transition">Remove</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderSlidesGrid() {
+            const grid = document.getElementById('slides-grid');
+            if (!grid) return;
+
+            if (globalSlides.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-xs text-textLight py-8">No hero presentations active.</p>`;
+                return;
+            }
+
+            grid.innerHTML = globalSlides.map(s => {
+                const img = s.image_url || s.imageUrl || 'https://placehold.co/600x300/EFE4CE/636B2F?text=Slide';
+                return `
+                <div class="bg-white rounded-xl border border-lineColor p-3 shadow-sm hover:shadow-md transition">
+                    <img src="${img}" class="w-full h-32 object-cover rounded-lg border border-lineColor mb-2">
+                    <h4 class="font-serif font-bold text-sm text-textDark">${s.title || 'Untitled Slide'}</h4>
+                    <p class="text-xs text-textLight truncate mb-3">${s.subtitle || ''}</p>
+                    <button onclick="deleteSlide('${s.id}')" class="w-full py-1.5 bg-danger/10 hover:bg-danger text-danger hover:text-white text-[11px] font-semibold rounded transition">Delete Slide</button>
+                </div>`;
+            }).join('');
+        }
+
+        // checkout.html writes order_status as lowercase ('pending', 'paid'/'confirmed' etc
+        // come from payment_status separately) — normalize for matching/display.
+        function statusBadgeClass(status) {
+            switch ((status || 'pending').toLowerCase()) {
+                case 'approved': return 'bg-sky-100 text-sky-700';
+                case 'shipped': return 'bg-blue-100 text-blue-700';
+                case 'delivered': return 'bg-emerald-100 text-emerald-700';
+                case 'cancelled': return 'bg-danger/10 text-danger';
+                default: return 'bg-goldPale text-sidebarBg';
+            }
+        }
+
+        function paymentBadgeClass(payStatus) {
+            switch ((payStatus || 'pending').toLowerCase()) {
+                case 'paid': case 'completed': case 'success': return 'text-emerald-700';
+                case 'failed': return 'text-danger';
+                default: return 'text-goldDeep';
+            }
+        }
+
+        function titleCase(str) {
+            const s = (str || 'pending');
+            return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+        }
+
+        function renderOrders(items = globalOrders) {
+            const table = document.getElementById('orders-table');
+            const cards = document.getElementById('orders-cards');
+
+            const navBadge = document.getElementById('nav-order-count');
+            if (navBadge) {
+                const pendingCount = globalOrders.filter(o => {
+                    const s = (o.order_status || 'pending').toLowerCase();
+                    return s === 'pending' || s === 'approved';
+                }).length;
+                if (pendingCount > 0) {
+                    navBadge.textContent = pendingCount;
+                    navBadge.classList.remove('hidden');
+                } else {
+                    navBadge.classList.add('hidden');
+                }
+            }
+
+            if (items.length === 0) {
+                const empty = `<p class="col-span-full text-center text-xs text-textLight py-8">No order transactions found.</p>`;
+                if (table) table.innerHTML = empty;
+                if (cards) cards.innerHTML = empty;
+                return;
+            }
+
+            if (table) {
+                table.innerHTML = items.map(o => `
+                    <tr class="hover:bg-brandBg/50 transition">
+                        <td class="p-4 font-bold text-sidebarBg">${o.order_number || ('#' + (o.id ? o.id.toString().substring(0,8) : 'ORD'))}</td>
+                        <td class="p-4 font-medium">${o.customer_name || 'Guest Customer'}<br><span class="text-[10px] text-textLight">${o.customer_phone || ''}</span></td>
+                        <td class="p-4 font-bold text-goldDeep">₹${Number(o.total_amount || 0).toLocaleString('en-IN')}</td>
+                        <td class="p-4 font-semibold ${paymentBadgeClass(o.payment_status)}">${titleCase(o.payment_status)}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusBadgeClass(o.order_status)}">${titleCase(o.order_status)}</span></td>
+                        <td class="p-4 text-right">
+                            <button onclick="openOrderDetails('${o.id}')" class="px-3 py-1 bg-sidebarBg text-white text-[10px] font-semibold uppercase rounded hover:bg-gold transition">View / Update</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            if (cards) {
+                cards.innerHTML = items.map(o => `
+                    <div class="bg-white p-4 rounded-xl border border-lineColor shadow-sm space-y-2">
+                        <div class="flex justify-between items-center border-b border-lineColor pb-2">
+                            <span class="font-bold text-sidebarBg text-xs">${o.order_number || ('#' + (o.id ? o.id.toString().substring(0,8) : 'ORD'))}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusBadgeClass(o.order_status)}">${titleCase(o.order_status)}</span>
+                        </div>
+                        <p class="text-xs font-semibold text-textDark">${o.customer_name || 'Guest Customer'}</p>
+                        <p class="text-xs font-bold text-goldDeep">Total: ₹${Number(o.total_amount || 0).toLocaleString('en-IN')}</p>
+                        <button onclick="openOrderDetails('${o.id}')" class="w-full py-1.5 bg-sidebarBg text-white text-[10px] font-semibold uppercase rounded hover:bg-gold transition">View / Update</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        let currentOrderId = null;
+
+        function openOrderDetails(id) {
+            const order = globalOrders.find(o => String(o.id) === String(id));
+            if (!order) return;
+            currentOrderId = order.id;
+
+            document.getElementById('od-order-id').textContent = order.order_number || ('#' + (order.id ? order.id.toString().substring(0, 8) : 'ORD'));
+            const badge = document.getElementById('od-status-badge');
+            badge.textContent = titleCase(order.order_status);
+            badge.className = 'px-3 py-1 rounded-full text-[10px] font-bold ' + statusBadgeClass(order.order_status);
+
+            document.getElementById('od-customer-name').textContent = order.customer_name || 'Guest Customer';
+            document.getElementById('od-customer-phone').textContent = order.customer_phone || '';
+            document.getElementById('od-customer-email').textContent = order.customer_email || '';
+
+            // shipping_address is a jsonb object: {house, street, city, district, state, pin, country, instructions}
+            let addr = order.shipping_address || {};
+            if (typeof addr === 'string') {
+                try { addr = JSON.parse(addr); } catch (e) { addr = {}; }
+            }
+            const addrLines = [
+                [addr.house, addr.street].filter(Boolean).join(', '),
+                [addr.city, addr.district].filter(Boolean).join(', '),
+                [addr.state, addr.pin].filter(Boolean).join(' - '),
+                addr.country
+            ].filter(Boolean).join('\n');
+            document.getElementById('od-address').textContent = addrLines || 'No address on file';
+            document.getElementById('od-instructions').textContent = addr.instructions ? ('Instructions: ' + addr.instructions) : '';
+
+            // Line items live in the separate order_items table, grouped by order_id in fetchSupabaseData.
+            const items = globalOrderItems[order.id] || [];
+            const itemsWrap = document.getElementById('od-items');
+            if (items.length > 0) {
+                itemsWrap.innerHTML = items.map(it => `
+                    <div class="flex items-center justify-between bg-white border border-lineColor rounded-lg p-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <img src="${it.product_image || 'https://placehold.co/60x60/EFE4CE/636B2F?text=%20'}" class="w-10 h-10 object-cover rounded border border-lineColor bg-lightGold">
+                            <div>
+                                <p class="font-semibold text-textDark text-xs">${it.product_name || 'Item'}</p>
+                                <p class="text-[10px] text-textLight">${it.selected_size ? 'Size: ' + it.selected_size + ' &nbsp;·&nbsp; ' : ''}Qty: ${it.quantity || 1}</p>
+                            </div>
+                        </div>
+                        <span class="font-semibold text-goldDeep text-xs">₹${Number(it.total_price || (it.unit_price || 0) * (it.quantity || 1)).toLocaleString('en-IN')}</span>
+                    </div>
+                `).join('');
+            } else {
+                itemsWrap.innerHTML = `<p class="text-xs text-textLight italic">No line items found for this order.</p>`;
+            }
+
+            document.getElementById('od-payment').textContent = titleCase(order.payment_status);
+            document.getElementById('od-subtotal').textContent = Number(order.subtotal || 0).toLocaleString('en-IN');
+            document.getElementById('od-shipping-fee').textContent = Number(order.shipping_fee || 0).toLocaleString('en-IN');
+            document.getElementById('od-weight').textContent = order.total_weight_kg != null ? ('(' + order.total_weight_kg + ' kg)') : '';
+            document.getElementById('od-total').textContent = Number(order.total_amount || 0).toLocaleString('en-IN');
+
+            document.getElementById('od-status-select').value = (order.order_status || 'pending').toLowerCase();
+            document.getElementById('od-tracking').value = order.tracking_number || '';
+            toggleTrackingField();
+
+            openModal('order-modal');
+        }
+
+        function toggleTrackingField() {
+            const val = document.getElementById('od-status-select').value;
+            document.getElementById('od-tracking-wrap').classList.toggle('hidden', val !== 'shipped');
+        }
+
+        async function submitOrderStatusUpdate() {
+            if (!currentOrderId) return;
+            const status = document.getElementById('od-status-select').value;
+            const tracking = document.getElementById('od-tracking').value.trim();
+
+            const payload = { order_status: status };
+            if (status === 'shipped' && tracking) payload.tracking_number = tracking;
+
+            let { error } = await supabaseClient.from('orders').update(payload).eq('id', currentOrderId);
+
+            // Fallback in case the orders table has no tracking_number column yet —
+            // still save the status change rather than failing the whole update.
+            if (error && payload.tracking_number !== undefined) {
+                ({ error } = await supabaseClient.from('orders').update({ order_status: status }).eq('id', currentOrderId));
+            }
+
+            if (error) {
+                alert('Error updating order: ' + error.message);
+                return;
+            }
+            showToast('Order marked as ' + titleCase(status));
+            closeModal('order-modal');
+            fetchSupabaseData();
+        }
+
+        function filterOrders() {
+            const query = document.getElementById('order-search').value.toLowerCase();
+            const filtered = globalOrders.filter(o => 
+                (o.customer_name && o.customer_name.toLowerCase().includes(query)) ||
+                (o.order_number && o.order_number.toLowerCase().includes(query)) ||
+                (o.id && o.id.toString().toLowerCase().includes(query))
+            );
+            renderOrders(filtered);
+        }
+
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) {
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            }
+        }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) {
+                m.classList.remove('flex');
+                m.classList.add('hidden');
+            }
+        }
+
+        function encodeImage(input, previewId, base64Id) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Downscale + compress before storing — raw phone photos (2-7MB
+                    // each) were bloating every products fetch to tens of MB and
+                    // causing the storefront grid to stall/never render.
+                    const img = new Image();
+                    img.onload = function() {
+                        const MAX_DIM = 1000;
+                        let w = img.width, h = img.height;
+                        if (w > MAX_DIM || h > MAX_DIM) {
+                            if (w >= h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+                            else { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.72);
+                        document.getElementById(previewId).src = compressed;
+                        document.getElementById(base64Id).value = compressed;
+                    };
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        document.getElementById('product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('p-id').value;
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const stock = document.getElementById('p-stock').value;
+            const image = document.getElementById('p-image-base64').value;
+            const sizeType = document.getElementById('p-size-type').value;
+
+            const cat1 = document.getElementById('p-category-1').value;
+            const cat2 = document.getElementById('p-category-2').value;
+            const cat3 = document.getElementById('p-category-3').value;
+
+            // Collect unique non-empty category selections
+            const catsSelected = [...new Set([cat1, cat2, cat3].filter(c => c && c.trim().length > 0))];
+            const categoryString = catsSelected.join(', ');
+
+            const payload = { name, price: Number(price), category: categoryString, image_url: image };
+
+            if (sizeType && SIZE_OPTIONS[sizeType]) {
+                // Sized product: stock lives per-size, plain stock column is cleared.
+                payload.size_type = sizeType;
+                payload.sizes = Array.from(document.querySelectorAll('.p-size-stock-input')).map(inp => ({
+                    size: inp.dataset.size,
+                    stock: inp.value === '' ? 0 : Number(inp.value)
+                }));
+                payload.stock = null;
+            } else {
+                payload.size_type = null;
+                payload.sizes = null;
+                payload.stock = stock === '' ? 0 : Number(stock);
+            }
+
+            let saveError = null;
+            if (id) {
+                const { error } = await supabaseClient.from('products').update(payload).eq('id', id);
+                saveError = error;
+                if (!error) showToast("Product updated successfully!");
+            } else {
+                const { error } = await supabaseClient.from('products').insert([payload]);
+                saveError = error;
+                if (!error) showToast("Product created with multi-categories!");
+            }
+
+            if (saveError) {
+                console.error("Product save error:", saveError.message);
+                alert("Error saving product: " + saveError.message);
+                return;
+            }
+
+            closeModal('product-modal');
+            document.getElementById('product-form').reset();
+            document.getElementById('p-id').value = '';
+            document.getElementById('p-size-type').value = '';
+            renderSizeInputs('', null);
+            fetchSupabaseData();
+        });
+
+        function openNewProduct() {
+            document.getElementById('product-form').reset();
+            document.getElementById('p-id').value = '';
+            document.getElementById('p-size-type').value = '';
+            renderSizeInputs('', null);
+            openModal('product-modal');
+        }
+
+        function editProduct(id) {
+            const prod = globalProducts.find(p => p.id === id);
+            if (!prod) return;
+
+            document.getElementById('p-id').value = prod.id;
+            document.getElementById('p-name').value = prod.name;
+            document.getElementById('p-price').value = prod.price;
+            document.getElementById('p-stock').value = (prod.stock !== undefined && prod.stock !== null) ? prod.stock : '';
+
+            const existingImage = prod.image1 || prod.image_url || prod.imageUrl || '';
+            document.getElementById('p-image-preview').src = existingImage;
+            document.getElementById('p-image-base64').value = existingImage;
+
+            // Populate up to 3 categories
+            const cats = prod.category ? String(prod.category).split(',').map(c => c.trim()) : [];
+            document.getElementById('p-category-1').value = cats[0] || '';
+            document.getElementById('p-category-2').value = cats[1] || '';
+            document.getElementById('p-category-3').value = cats[2] || '';
+
+            document.getElementById('p-size-type').value = prod.size_type || '';
+            renderSizeInputs(prod.size_type || '', prod.sizes || null);
+
+            openModal('product-modal');
+        }
+
+        async function deleteProduct(id) {
+            await supabaseClient.from('products').delete().eq('id', id);
+            showToast("Product deleted.");
+            fetchSupabaseData();
+        }
+
+        document.getElementById('category-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('c-name').value;
+            const image = document.getElementById('c-image-base64').value;
+
+            await supabaseClient.from('categories').insert([{ name, image_url: image }]);
+            showToast("Collection added!");
+            closeModal('category-modal');
+            document.getElementById('category-form').reset();
+            fetchSupabaseData();
+        });
+
+        async function deleteCategory(id) {
+            await supabaseClient.from('categories').delete().eq('id', id);
+            showToast("Collection removed.");
+            fetchSupabaseData();
+        }
+
+        document.getElementById('slide-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('s-title').value;
+            const subtitle = document.getElementById('s-subtitle').value;
+            const image = document.getElementById('s-image-base64').value;
+
+            await supabaseClient.from('hero_slides').insert([{ title, subtitle, image_url: image }]);
+            showToast("Presentation slide added!");
+            closeModal('slide-modal');
+            document.getElementById('slide-form').reset();
+            fetchSupabaseData();
+        });
+
+        async function deleteSlide(id) {
+            await supabaseClient.from('hero_slides').delete().eq('id', id);
+            showToast("Slide deleted.");
+            fetchSupabaseData();
+        }
+
+        async function startSilentDatabaseOptimization() {
+            if (window.isOptimizingDB) return;
+            window.isOptimizingDB = true;
+            console.log("Starting silent background database optimization...");
+            
+            try {
+                // 1. Fetch only product IDs to avoid timeouts
+                const { data: ids, error: idError } = await supabaseClient.from('products').select('id');
+                if (idError) throw idError;
+                
+                if (!ids || ids.length === 0) return;
+                
+                for (const item of ids) {
+                    // 2. Fetch specific product's image and name
+                    const { data: prod, error: prodError } = await supabaseClient.from('products')
+                        .select('id, name, image_url')
+                        .eq('id', item.id)
+                        .single();
+                        
+                    if (prodError) {
+                        console.error(`Error fetching product ${item.id}:`, prodError.message);
+                        continue;
+                    }
+                    
+                    // 3. Compress if large base64 image (length > 300,000 chars)
+                    if (prod.image_url && prod.image_url.startsWith('data:image/') && prod.image_url.length > 300000) {
+                        try {
+                            const compressed = await compressBase64(prod.image_url, 1000, 0.72);
+                            
+                            // 4. Update the record
+                            const { error: updateError } = await supabaseClient.from('products')
+                                .update({ image_url: compressed })
+                                .eq('id', prod.id);
+                                
+                            if (updateError) throw updateError;
+                        } catch (compressErr) {
+                            console.error(`Failed to compress image for ${prod.id}:`, compressErr);
+                        }
+                    }
+                }
+                
+                console.log("Silent background database optimization complete.");
+                window.isOptimizingDB = false;
+                fetchSupabaseData();
+                
+            } catch (err) {
+                console.error("Silent optimization failed:", err);
+                window.isOptimizingDB = false;
+            }
+        }
+        
+        function compressBase64(base64Str, maxDim = 1000, quality = 0.72) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = function() {
+                    let w = img.width, h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w >= h) { h = Math.round(h * maxDim / w); w = maxDim; }
+                        else { w = Math.round(w * maxDim / h); h = maxDim; }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.onerror = reject;
+                img.src = base64Str;
+            });
+        }
+
+        window.onload = function() {
+            checkAuth();
+        };
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ayhaan Opulent | Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandBg: '#FDFBF7',
+                        sidebarBg: 'rgb(158, 106, 104)',
+                        sidebarBgDark: 'rgb(130, 84, 82)',
+                        gold: '#C5A059',
+                        goldDeep: '#A9824A',
+                        goldPale: '#EFE4CE',
+                        textDark: '#2A2626',
+                        textLight: '#7A7571',
+                        lineColor: '#E8E2D8',
+                        danger: '#B5473C'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Cormorant Garamond', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #FDFBF7;
+            --sidebar-bg: rgb(158, 106, 104);
+            --gold: #C5A059;
+            --gold-deep: #A9824A;
+            --gold-pale: #EFE4CE;
+            --text-dark: #2A2626;
+            --text-light: #7A7571;
+            --line: #E8E2D8;
+            --danger: #B5473C;
+        }
+
+        * { -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-color); color: var(--text-dark); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); }
+        ::-webkit-scrollbar-thumb { background: rgba(158, 106, 104, 0.3); border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+        .mobile-drawer {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateX(-100%);
+        }
+        .mobile-drawer.open { transform: translateX(0); }
+        
+        .drawer-backdrop {
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+
+        .tab-content { display: none; animation: fadeUp 0.35s ease-out forwards; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-input:focus { border-bottom-color: var(--gold); }
+    </style>
+</head>
+<body class="min-h-screen antialiased flex flex-col justify-between selection:bg-goldPale selection:text-textDark">
+
+    <div id="auth-overlay" class="fixed inset-0 bg-brandBg/95 backdrop-blur-md z-[1000] flex items-center justify-center p-4">
+        <div class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl w-full max-w-md text-center border-t-4 border-gold">
+            <h1 class="font-serif text-3xl md:text-4xl text-sidebarBg font-semibold mb-1">ayhaan <span class="italic text-gold">Opulent</span></h1>
+            <p class="text-xs uppercase tracking-[0.25em] text-textLight font-medium mb-8">Management Portal</p>
+            
+            <div class="space-y-4">
+                <input type="password" id="pin-input" class="auth-input w-full p-3 text-center text-2xl tracking-[0.4em] border-b-2 border-lineColor outline-none transition bg-transparent" placeholder="••••">
+                <button id="login-btn" class="w-full py-3.5 px-6 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-widest rounded-lg transition-all duration-300 shadow-md hover:shadow-lg active:scale-95">
+                    Authenticate
+                </button>
+            </div>
+            <p id="auth-error" class="text-danger text-xs mt-4 hidden font-medium">Invalid access PIN provided.</p>
+        </div>
+    </div>
+
+    <div id="admin-app" class="hidden min-h-screen flex-col md:flex-row w-full overflow-hidden">
+        
+        <!-- Mobile Top Header -->
+        <header class="md:hidden bg-sidebarBg text-white px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-md border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <button id="mobile-menu-btn" class="p-2 -ml-2 rounded-lg hover:bg-white/10 text-white transition focus:outline-none" aria-label="Toggle navigation menu">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <div>
+                    <h2 class="font-serif text-xl font-bold tracking-wider leading-none">ayhaan</h2>
+                    <span id="mobile-page-title" class="text-[10px] text-goldPale tracking-widest uppercase font-semibold">Overview</span>
+                </div>
+            </div>
+            
+            <button onclick="lockSystem()" class="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition" title="Secure Lock">
+                <i data-lucide="lock" class="w-5 h-5"></i>
+            </button>
+        </header>
+
+        <div id="drawer-backdrop" class="drawer-backdrop fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"></div>
+
+        <!-- Sidebar Drawer -->
+        <aside id="sidebar-drawer" class="mobile-drawer md:transform-none fixed md:relative inset-y-0 left-0 w-[270px] lg:w-[290px] bg-sidebarBg text-white z-50 md:z-10 flex flex-col shadow-2xl md:shadow-md h-full shrink-0">
+            
+            <div class="px-6 py-6 border-b border-white/10 flex items-center justify-between">
+                <div class="text-left">
+                    <h2 class="font-serif text-2xl font-bold tracking-widest text-white">ayhaan</h2>
+                    <span class="text-[10px] uppercase tracking-[0.25em] text-goldPale font-semibold">Admin Panel</span>
+                </div>
+                <button id="drawer-close-btn" class="md:hidden text-white/70 hover:text-white p-2 rounded-lg hover:bg-white/10 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
+                <button class="nav-link active w-full flex items-center gap-3.5 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm font-medium transition-all text-left border-l-4 border-transparent" data-target="dashboard" data-title="Overview">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 shrink-0 text-gold"></i>
+                    <span>Boutique Overview</span>
+                </button>
+
+                <button class="nav-link w-full flex items-center gap-3.5 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm font-medium transition-all text-left border-l-4 border-transparent" data-target="hero-slider" data-title="Hero Presentations">
+                    <i data-lucide="monitor-play" class="w-5 h-5 shrink-0 text-gold"></i>
+                    <span>Hero Slides</span>
+                </button>
+
+                <button class="nav-link w-full flex items-center gap-3.5 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm font-medium transition-all text-left border-l-4 border-transparent" data-target="orders" data-title="Order Management">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 shrink-0 text-gold"></i>
+                    <div class="flex-1 flex justify-between items-center">
+                        <span>Orders</span>
+                        <span id="nav-order-count" class="bg-gold/20 text-goldPale text-[10px] px-2 py-0.5 rounded-full font-bold hidden">0</span>
+                    </div>
+                </button>
+
+                <button class="nav-link w-full flex items-center gap-3.5 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm font-medium transition-all text-left border-l-4 border-transparent" data-target="products" data-title="Jewelry Portfolio">
+                    <i data-lucide="gem" class="w-5 h-5 shrink-0 text-gold"></i>
+                    <span>Jewelry Portfolio</span>
+                </button>
+
+                <button class="nav-link w-full flex items-center gap-3.5 px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-xl text-sm font-medium transition-all text-left border-l-4 border-transparent" data-target="categories" data-title="Collections">
+                    <i data-lucide="layers" class="w-5 h-5 shrink-0 text-gold"></i>
+                    <span>Collections</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-white/10 bg-sidebarBgDark/40">
+                <button onclick="lockSystem()" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-white/5 hover:bg-white/15 text-white/80 hover:text-white text-xs font-semibold uppercase tracking-wider transition">
+                    <i data-lucide="lock" class="w-4 h-4"></i>
+                    <span>Secure Lock</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content View -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 bg-brandBg min-h-screen">
+            
+            <section id="dashboard" class="tab-content active space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-2">
+                    <div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Boutique Overview</h1>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Manage your luxury jewelry portfolio connected to Supabase.</p>
+                    </div>
+                    <button onclick="fetchSupabaseData()" class="self-start sm:self-auto inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-lineColor rounded-lg text-xs font-semibold text-textDark hover:bg-goldPale/30 transition shadow-sm">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-gold"></i> Refresh Data
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+                    <div class="bg-white p-5 rounded-2xl border border-lineColor shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center text-textLight mb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider">Pieces</span>
+                            <i data-lucide="gem" class="w-5 h-5 text-gold"></i>
+                        </div>
+                        <div class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg" id="stat-products">0</div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-lineColor shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center text-textLight mb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider">Collections</span>
+                            <i data-lucide="layers" class="w-5 h-5 text-sky-600"></i>
+                        </div>
+                        <div class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg" id="stat-categories">0</div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-lineColor shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center text-textLight mb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider">Hero Slides</span>
+                            <i data-lucide="monitor-play" class="w-5 h-5 text-emerald-600"></i>
+                        </div>
+                        <div class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg" id="stat-slides">0</div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-lineColor shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center text-textLight mb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider">Total Orders</span>
+                            <i data-lucide="shopping-bag" class="w-5 h-5 text-amber-600"></i>
+                        </div>
+                        <div class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg" id="stat-orders">0</div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-sidebarBg to-sidebarBgDark rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-serif text-2xl font-semibold">Store Catalog Management</h3>
+                        <p class="text-xs text-white/80 mt-1 max-w-xl">Upload fine jewelry imagery, manage multi-category assignments, and curate your collections.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5">
+                        <button onclick="switchTab('products'); openNewProduct();" class="px-4 py-2.5 bg-gold hover:bg-goldDeep text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition shadow">
+                            + Add Piece
+                        </button>
+                        <button onclick="switchTab('categories'); openModal('category-modal');" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition border border-white/20">
+                            + Collection
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hero Slider -->
+            <section id="hero-slider" class="tab-content space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-3">
+                    <div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Hero Presentations</h1>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Manage sliding showcase banners displayed on your storefront landing page.</p>
+                    </div>
+                    <button onclick="openModal('slide-modal')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gold hover:bg-goldDeep text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition shadow-sm self-start sm:self-auto">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add Slide
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" id="slides-grid"></div>
+            </section>
+
+            <!-- Orders -->
+            <section id="orders" class="tab-content space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-3">
+                    <div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Order Management</h1>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Track payments, order status updates, and customer details.</p>
+                    </div>
+                    <div class="relative w-full sm:w-64">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-textLight"></i>
+                        <input type="text" id="order-search" oninput="filterOrders()" placeholder="Search order # or customer..." class="w-full pl-9 pr-4 py-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                    </div>
+                </div>
+
+                <div id="orders-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:hidden"></div>
+
+                <div class="hidden lg:block bg-white rounded-2xl border border-lineColor shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-goldPale/60 uppercase tracking-wider text-textDark font-semibold border-b border-lineColor">
+                                <tr>
+                                    <th class="p-4">Order #</th>
+                                    <th class="p-4">Customer</th>
+                                    <th class="p-4">Total</th>
+                                    <th class="p-4">Payment</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table" class="divide-y divide-lineColor"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="products" class="tab-content space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-3">
+                    <div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Jewelry Portfolio</h1>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Manage individual fine pieces, pricing, and multi-category assignments.</p>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="relative flex-1 sm:w-48">
+                            <input type="text" id="product-search" oninput="filterProducts()" placeholder="Search piece..." class="w-full px-3 py-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                        </div>
+                        <button onclick="openNewProduct()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gold hover:bg-goldDeep text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition shadow-sm">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add Piece
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5"></div>
+            </section>
+
+            <!-- Categories -->
+            <section id="categories" class="tab-content space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-lineColor gap-3">
+                    <div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sidebarBg">Collections</h1>
+                        <p class="text-xs sm:text-sm text-textLight mt-1">Organize pieces into elegant luxury thematic collections.</p>
+                    </div>
+                    <button onclick="openModal('category-modal')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gold hover:bg-goldDeep text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition shadow-sm self-start sm:self-auto">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add Collection
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6" id="categories-grid"></div>
+            </section>
+
+        </main>
+    </div>
+
+    
+    <!-- Slide Modal -->
+    <div id="slide-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
+            <button type="button" onclick="closeModal('slide-modal')" class="absolute top-4 right-4 text-textLight hover:text-danger transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="font-serif text-2xl font-bold text-sidebarBg mb-4">Manage Slide Presentation</h3>
+            <form id="slide-form" class="space-y-4">
+                <input type="hidden" id="s-id">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Primary Title</label>
+                    <input type="text" id="s-title" required class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Subtitle (Optional)</label>
+                    <input type="text" id="s-subtitle" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Hero Background Image</label>
+                    <div class="flex items-center gap-4 mt-1">
+                        <img id="s-image-preview" class="w-20 h-20 object-cover rounded-lg border border-lineColor bg-brandBg shrink-0" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Preview">
+                        <label class="px-4 py-2 bg-brandBg border border-lineColor hover:border-gold text-xs uppercase tracking-wider font-semibold rounded-lg cursor-pointer transition">
+                            Choose Image
+                            <input type="file" accept="image/*" class="hidden" onchange="encodeImage(this, 's-image-preview', 's-image-base64')">
+                        </label>
+                    </div>
+                    <input type="hidden" id="s-image-base64" required>
+                </div>
+                <button type="submit" class="w-full py-3 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition mt-2">
+                    Save Presentation
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="category-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
+            <button type="button" onclick="closeModal('category-modal')" class="absolute top-4 right-4 text-textLight hover:text-danger transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="font-serif text-2xl font-bold text-sidebarBg mb-4">Manage Collection</h3>
+            <form id="category-form" class="space-y-4">
+                <input type="hidden" id="c-id">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Collection Name</label>
+                    <input type="text" id="c-name" required class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Collection Thumbnail</label>
+                    <div class="flex items-center gap-4 mt-1">
+                        <img id="c-image-preview" class="w-20 h-20 rounded-full object-cover border border-lineColor bg-brandBg shrink-0" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Preview">
+                        <label class="px-4 py-2 bg-brandBg border border-lineColor hover:border-gold text-xs uppercase tracking-wider font-semibold rounded-lg cursor-pointer transition">
+                            Upload Image
+                            <input type="file" accept="image/*" class="hidden" onchange="encodeImage(this, 'c-image-preview', 'c-image-base64')">
+                        </label>
+                    </div>
+                    <input type="hidden" id="c-image-base64" required>
+                </div>
+                <button type="submit" class="w-full py-3 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition mt-2">
+                    Save Collection
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Product Modal with Multi-Category Support (Primary, Secondary, Tertiary) -->
+    <div id="product-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
+            <button type="button" onclick="closeModal('product-modal')" class="absolute top-4 right-4 text-textLight hover:text-danger transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="font-serif text-2xl font-bold text-sidebarBg mb-4">Register Jewelry Piece</h3>
+            <form id="product-form" class="space-y-4">
+                <input type="hidden" id="p-id">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Piece Nomenclature</label>
+                    <input type="text" id="p-name" required class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+                
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Value (₹)</label>
+                    <input type="number" id="p-price" required min="0" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+
+                <div id="p-stock-wrap">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Stock Available</label>
+                    <input type="number" id="p-stock" min="0" step="1" placeholder="e.g. 10" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Size Type</label>
+                    <select id="p-size-type" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-brandBg">
+                        <option value="">No Sizes (use Stock Available above)</option>
+                        <option value="bangle">Bangle</option>
+                        <option value="ring">Ring</option>
+                    </select>
+                </div>
+
+                <div id="p-sizes-wrap" class="hidden p-3 bg-brandBg rounded-xl border border-lineColor space-y-2">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Stock per Size</label>
+                    <div id="p-sizes-grid" class="grid grid-cols-2 gap-2"></div>
+                </div>
+
+                <!-- Multi-Category Selectors (Assign 1, 2, or 3 categories) -->
+                <div class="p-3 bg-brandBg rounded-xl border border-lineColor space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight">Assigned Collections (Up to 3)</label>
+                        <span class="text-[10px] text-gold font-medium">Multi-Tagging</span>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">Primary Collection *</span>
+                        <select id="p-category-1" required class="w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                            <option value="">Select Primary Collection</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">Secondary Collection (Optional)</span>
+                        <select id="p-category-2" class="w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">Tertiary Collection (Optional)</span>
+                        <select id="p-category-3" class="w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Product Image</label>
+                    <div class="flex items-center gap-4 mt-1">
+                        <img id="p-image-preview" class="w-20 h-20 object-cover rounded-lg border border-lineColor bg-brandBg shrink-0" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Preview">
+                        <label class="px-4 py-2 bg-brandBg border border-lineColor hover:border-gold text-xs uppercase tracking-wider font-semibold rounded-lg cursor-pointer transition">
+                            Upload Image
+                            <input type="file" accept="image/*" class="hidden" onchange="encodeImage(this, 'p-image-preview', 'p-image-base64')">
+                        </label>
+                    </div>
+                    <input type="hidden" id="p-image-base64" required>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition mt-2">
+                    Save Piece
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="order-modal" class="fixed inset-0 bg-black/70 z-[2000] hidden items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-t-2xl sm:rounded-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto border-t-4 border-sidebarBg">
+            <button type="button" onclick="closeModal('order-modal')" class="absolute top-4 right-4 text-textLight hover:text-danger transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex items-center justify-between mb-5 pr-8">
+                <h3 class="font-serif text-2xl font-bold text-sidebarBg">Order <span id="od-order-id"></span></h3>
+                <span id="od-status-badge" class="px-3 py-1 rounded-full text-[10px] font-bold bg-goldPale text-sidebarBg"></span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5 text-xs">
+                <div class="bg-brandBg p-3 rounded-xl border border-lineColor">
+                    <p class="text-[10px] uppercase font-bold text-textLight mb-1">Customer</p>
+                    <p id="od-customer-name" class="font-semibold text-textDark"></p>
+                    <p id="od-customer-phone" class="text-textLight"></p>
+                    <p id="od-customer-email" class="text-textLight"></p>
+                </div>
+                <div class="bg-brandBg p-3 rounded-xl border border-lineColor">
+                    <p class="text-[10px] uppercase font-bold text-textLight mb-1">Shipping Address</p>
+                    <p id="od-address" class="text-textDark whitespace-pre-line"></p>
+                    <p id="od-instructions" class="text-textLight italic mt-1"></p>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <p class="text-[10px] uppercase font-bold text-textLight mb-2">Order Items</p>
+                <div id="od-items" class="space-y-2"></div>
+            </div>
+
+            <div class="border-t border-lineColor pt-4 mb-5 text-xs space-y-1.5">
+                <div class="flex justify-between text-textLight"><span>Subtotal</span><span>₹<span id="od-subtotal"></span></span></div>
+                <div class="flex justify-between text-textLight"><span>Shipping Fee <span id="od-weight" class="text-[10px]"></span></span><span>₹<span id="od-shipping-fee"></span></span></div>
+                <div class="flex justify-between text-textLight"><span>Payment</span><span id="od-payment" class="font-semibold"></span></div>
+                <div class="flex justify-between items-center pt-2 border-t border-lineColor text-sm">
+                    <span class="text-textDark font-semibold">Total Paid</span>
+                    <span class="font-serif text-xl font-bold text-goldDeep">₹<span id="od-total"></span></span>
+                </div>
+            </div>
+
+            <div class="p-4 bg-brandBg rounded-xl border border-lineColor space-y-3">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-textLight">Update Fulfillment Status</p>
+                <select id="od-status-select" onchange="toggleTrackingField()" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <div id="od-tracking-wrap" class="hidden">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-textLight mb-1">Tracking Number (Optional)</label>
+                    <input type="text" id="od-tracking" placeholder="e.g. AWB123456789" class="w-full p-2.5 text-sm border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                </div>
+                <button onclick="submitOrderStatusUpdate()" class="w-full py-3 bg-sidebarBg hover:bg-gold text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition">
+                    Save Status
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/60 z-[3000] hidden items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 text-center shadow-2xl border-t-4 border-danger">
+            <i data-lucide="alert-triangle" class="w-12 h-12 text-danger mx-auto mb-3"></i>
+            <h4 id="confirm-title" class="font-serif text-xl font-bold text-sidebarBg mb-1">Confirm Action</h4>
+            <p id="confirm-msg" class="text-xs text-textLight mb-6">Are you sure you want to remove this item?</p>
+            <div class="flex gap-3">
+                <button id="confirm-cancel-btn" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-textDark text-xs font-semibold uppercase tracking-wider rounded-lg transition">Cancel</button>
+                <button id="confirm-ok-btn" class="flex-1 py-2.5 bg-danger hover:bg-red-700 text-white text-xs font-semibold uppercase tracking-wider rounded-lg transition shadow">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-toast" class="fixed bottom-6 right-6 left-6 sm:left-auto bg-sidebarBg text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 z-[4000] transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-gold shrink-0"></i>
+        <span id="toast-msg" class="text-xs font-semibold tracking-wide">Action executed successfully.</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+        lucide.createIcons();
+
+        const SUPABASE_URL = "https://orjxoslyjonedljqnzgu.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yanhvc2x5am9uZWRsanFuemd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxMTMzMjAsImV4cCI6MjEwMTY4OTMyMH0.dWvnC8CkaUg-uNw2S0rNKklBOwx3ai6bMdI-ZA3RG3I";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let globalOrders = [];
+        let globalOrderItems = {};
+        let globalProducts = [];
+        let globalCategories = [];
+        let globalSlides = [];
+
+        // Fixed size ladders for sized jewelry pieces.
+        const SIZE_OPTIONS = {
+            bangle: ['2.2', '2.4', '2.6', '2.8'],
+            ring: ['5', '6', '7', '8']
+        };
+
+        function renderSizeInputs(type, existingSizes) {
+            const stockWrap = document.getElementById('p-stock-wrap');
+            const sizesWrap = document.getElementById('p-sizes-wrap');
+            const sizesGrid = document.getElementById('p-sizes-grid');
+
+            if (!type || !SIZE_OPTIONS[type]) {
+                sizesWrap.classList.add('hidden');
+                sizesGrid.innerHTML = '';
+                stockWrap.classList.remove('hidden');
+                return;
+            }
+
+            stockWrap.classList.add('hidden');
+            sizesWrap.classList.remove('hidden');
+
+            sizesGrid.innerHTML = SIZE_OPTIONS[type].map(s => {
+                const existing = (existingSizes || []).find(x => x.size === s);
+                const val = existing ? existing.stock : '';
+                const label = type === 'ring' ? `Ring Size ${s}` : `Bangle Size ${s}`;
+                return `
+                    <div>
+                        <span class="text-[10px] uppercase font-semibold text-textLight block mb-1">${label}</span>
+                        <input type="number" min="0" step="1" data-size="${s}" value="${val}" placeholder="Stock" class="p-size-stock-input w-full p-2 text-xs border border-lineColor rounded-lg outline-none focus:border-gold bg-white">
+                    </div>`;
+            }).join('');
+        }
+
+        document.getElementById('p-size-type').addEventListener('change', (e) => {
+            renderSizeInputs(e.target.value, null);
+        });
+
+        function showToast(message) {
+            const toast = document.getElementById('admin-toast');
+            document.getElementById('toast-msg').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        const authOverlay = document.getElementById('auth-overlay');
+        const adminApp = document.getElementById('admin-app');
+        const pinInput = document.getElementById('pin-input');
+        const loginBtn = document.getElementById('login-btn');
+        const authError = document.getElementById('auth-error');
+
+        function checkAuth() {
+            if (sessionStorage.getItem('ao_admin_auth') === 'true') {
+                authOverlay.style.display = 'none';
+                adminApp.classList.remove('hidden');
+                adminApp.classList.add('flex');
+                fetchSupabaseData();
+            }
+        }
+
+        loginBtn.addEventListener('click', () => {
+            const pin = pinInput.value.trim();
+            if (pin === 'wbht2' || pin === '8590' || pin === '1234') {
+                sessionStorage.setItem('ao_admin_auth', 'true');
+                authError.classList.add('hidden');
+                checkAuth();
+            } else {
+                authError.classList.remove('hidden');
+            }
+        });
+
+        function lockSystem() {
+            sessionStorage.removeItem('ao_admin_auth');
+            location.reload();
+        }
+
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const drawerCloseBtn = document.getElementById('drawer-close-btn');
+        const sidebarDrawer = document.getElementById('sidebar-drawer');
+        const drawerBackdrop = document.getElementById('drawer-backdrop');
+
+        function openDrawer() {
+            sidebarDrawer.classList.add('open');
+            drawerBackdrop.classList.add('open');
+        }
+
+        function closeDrawer() {
+            sidebarDrawer.classList.remove('open');
+            drawerBackdrop.classList.remove('open');
+        }
+
+        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openDrawer);
+        if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeDrawer);
+        if (drawerBackdrop) drawerBackdrop.addEventListener('click', closeDrawer);
+
+        function switchTab(targetId, title) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active', 'border-gold', 'bg-white/10'));
+
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) targetSection.classList.add('active');
+
+            const activeBtn = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+            if (activeBtn) activeBtn.classList.add('active', 'border-gold', 'bg-white/10');
+
+            if (title) {
+                const mobTitle = document.getElementById('mobile-page-title');
+                if (mobTitle) mobTitle.textContent = title;
+            }
+
+            closeDrawer();
+        }
+
+        document.querySelectorAll('.nav-link').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-target');
+                const title = btn.getAttribute('data-title');
+                switchTab(target, title);
+            });
+        });
+
+        async function fetchSupabaseData() {
+            try {
+                const [prodsRes, catsRes, slidesRes, ordersRes, orderItemsRes] = await Promise.all([
+                    supabaseClient.from('products').select('*'),
+                    supabaseClient.from('categories').select('*'),
+                    supabaseClient.from('hero_slides').select('*'),
+                    supabaseClient.from('orders').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('order_items').select('*')
+                ]);
+
+                if (!prodsRes.error) {
+                    globalProducts = prodsRes.data || [];
+                } else {
+                    console.error("Products fetch error:", prodsRes.error.message);
+                    if (prodsRes.error.message.includes('timeout') || prodsRes.error.message.includes('canceling statement') || prodsRes.error.message.includes('500')) {
+                        startSilentDatabaseOptimization();
+                    }
+                }
+                if (!catsRes.error) globalCategories = catsRes.data || []; else console.error("Categories fetch error:", catsRes.error.message);
+                if (!slidesRes.error) globalSlides = slidesRes.data || []; else console.error("Slides fetch error:", slidesRes.error.message);
+                if (!ordersRes.error) globalOrders = ordersRes.data || []; else console.error("Orders fetch error:", ordersRes.error.message);
+
+                // Group order_items by order_id so each order's line items are a quick lookup.
+                globalOrderItems = {};
+                if (!orderItemsRes.error) {
+                    (orderItemsRes.data || []).forEach(item => {
+                        if (!globalOrderItems[item.order_id]) globalOrderItems[item.order_id] = [];
+                        globalOrderItems[item.order_id].push(item);
+                    });
+                } else {
+                    console.error("Order items fetch error:", orderItemsRes.error.message);
+                }
+
+                document.getElementById('stat-products').textContent = globalProducts.length;
+                document.getElementById('stat-categories').textContent = globalCategories.length;
+                document.getElementById('stat-slides').textContent = globalSlides.length;
+                document.getElementById('stat-orders').textContent = globalOrders.length;
+
+                renderCategoriesOptions();
+                renderProductsGrid();
+                renderCategoriesGrid();
+                renderSlidesGrid();
+                renderOrders();
+
+            } catch (err) {
+                console.error("Data synchronization error:", err);
+            }
+        }
+
+        function renderCategoriesOptions() {
+            const cat1 = document.getElementById('p-category-1');
+            const cat2 = document.getElementById('p-category-2');
+            const cat3 = document.getElementById('p-category-3');
+
+            let options1 = '<option value="">Select Primary Collection</option>';
+            let options2 = '<option value="">None</option>';
+            let options3 = '<option value="">None</option>';
+
+            globalCategories.forEach(c => {
+                options1 += `<option value="${c.name}">${c.name}</option>`;
+                options2 += `<option value="${c.name}">${c.name}</option>`;
+                options3 += `<option value="${c.name}">${c.name}</option>`;
+            });
+
+            if (cat1) cat1.innerHTML = options1;
+            if (cat2) cat2.innerHTML = options2;
+            if (cat3) cat3.innerHTML = options3;
+        }
+
+        function renderProductsGrid(items = globalProducts) {
+            const grid = document.getElementById('products-grid');
+            if (!grid) return;
+
+            if (items.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-xs text-textLight py-8">No jewelry pieces available.</p>`;
+                return;
+            }
+
+            grid.innerHTML = items.map(p => {
+                const img = p.image1 || p.image_url || p.imageUrl || 'https://placehold.co/300x300/EFE4CE/636B2F?text=Piece';
+                const cats = p.category ? String(p.category).split(',').map(c => c.trim()) : ['Collection'];
+                
+                const catPills = cats.map(c => 
+                    `<span class="text-[9px] bg-goldPale text-sidebarBg font-bold px-1.5 py-0.5 rounded-md border border-gold/30">${c}</span>`
+                ).join(' ');
+
+                return `
+                <div class="bg-white rounded-xl border border-lineColor p-3 flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                    <div>
+                        <img src="${img}" alt="${p.name}" class="w-full aspect-square object-cover rounded-lg border border-lineColor mb-2">
+                        <div class="flex flex-wrap gap-1 mb-1.5">${catPills}</div>
+                        <h4 class="font-serif font-bold text-sm text-textDark truncate">${p.name}</h4>
+                        <p class="text-xs font-bold text-goldDeep mt-0.5">₹${Number(p.price).toLocaleString('en-IN')}</p>
+                        ${p.size_type && Array.isArray(p.sizes) && p.sizes.length > 0
+                            ? `<p class="text-[10px] font-semibold mt-0.5 text-textLight">${p.sizes.map(s => `<span class="${Number(s.stock) <= 0 ? 'text-danger' : ''}">${s.size}: ${s.stock}</span>`).join(' &nbsp;•&nbsp; ')}</p>`
+                            : `<p class="text-[10px] font-semibold mt-0.5 ${(p.stock !== undefined && p.stock !== null && Number(p.stock) <= 0) ? 'text-danger' : 'text-textLight'}">${(p.stock !== undefined && p.stock !== null) ? Number(p.stock) + ' in stock' : 'Stock not set'}</p>`
+                        }
+                    </div>
+                    <div class="flex gap-2 mt-3 pt-2 border-t border-lineColor">
+                        <button onclick="editProduct('${p.id}')" class="flex-1 py-1.5 bg-brandBg hover:bg-goldPale text-textDark text-[11px] font-semibold rounded transition">Edit</button>
+                        <button onclick="deleteProduct('${p.id}')" class="py-1.5 px-2.5 bg-danger/10 hover:bg-danger text-danger hover:text-white text-[11px] font-semibold rounded transition">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function filterProducts() {
+            const query = document.getElementById('product-search').value.toLowerCase();
+            const filtered = globalProducts.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                (p.category && p.category.toLowerCase().includes(query))
+            );
+            renderProductsGrid(filtered);
+        }
+
+        function renderCategoriesGrid() {
+            const grid = document.getElementById('categories-grid');
+            if (!grid) return;
+
+            if (globalCategories.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-xs text-textLight py-8">No collections established.</p>`;
+                return;
+            }
+
+            grid.innerHTML = globalCategories.map(c => {
+                const img = c.image_url || c.imageUrl || 'https://placehold.co/300x300/EFE4CE/636B2F?text=Collection';
+                return `
+                <div class="bg-white rounded-xl border border-lineColor p-3 flex flex-col justify-between shadow-sm hover:shadow-md transition">
+                    <div class="text-center">
+                        <img src="${img}" alt="${c.name}" class="w-20 h-20 rounded-full object-cover border border-lineColor mx-auto mb-2">
+                        <h4 class="font-serif font-bold text-sm text-textDark">${c.name}</h4>
+                    </div>
+                    <div class="flex gap-2 mt-3 pt-2 border-t border-lineColor">
+                        <button onclick="deleteCategory('${c.id}')" class="w-full py-1.5 bg-danger/10 hover:bg-danger text-danger hover:text-white text-[11px] font-semibold rounded transition">Remove</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderSlidesGrid() {
+            const grid = document.getElementById('slides-grid');
+            if (!grid) return;
+
+            if (globalSlides.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-xs text-textLight py-8">No hero presentations active.</p>`;
+                return;
+            }
+
+            grid.innerHTML = globalSlides.map(s => {
+                const img = s.image_url || s.imageUrl || 'https://placehold.co/600x300/EFE4CE/636B2F?text=Slide';
+                return `
+                <div class="bg-white rounded-xl border border-lineColor p-3 shadow-sm hover:shadow-md transition">
+                    <img src="${img}" class="w-full h-32 object-cover rounded-lg border border-lineColor mb-2">
+                    <h4 class="font-serif font-bold text-sm text-textDark">${s.title || 'Untitled Slide'}</h4>
+                    <p class="text-xs text-textLight truncate mb-3">${s.subtitle || ''}</p>
+                    <button onclick="deleteSlide('${s.id}')" class="w-full py-1.5 bg-danger/10 hover:bg-danger text-danger hover:text-white text-[11px] font-semibold rounded transition">Delete Slide</button>
+                </div>`;
+            }).join('');
+        }
+
+        // checkout.html writes order_status as lowercase ('pending', 'paid'/'confirmed' etc
+        // come from payment_status separately) — normalize for matching/display.
+        function statusBadgeClass(status) {
+            switch ((status || 'pending').toLowerCase()) {
+                case 'approved': return 'bg-sky-100 text-sky-700';
+                case 'shipped': return 'bg-blue-100 text-blue-700';
+                case 'delivered': return 'bg-emerald-100 text-emerald-700';
+                case 'cancelled': return 'bg-danger/10 text-danger';
+                default: return 'bg-goldPale text-sidebarBg';
+            }
+        }
+
+        function paymentBadgeClass(payStatus) {
+            switch ((payStatus || 'pending').toLowerCase()) {
+                case 'paid': case 'completed': case 'success': return 'text-emerald-700';
+                case 'failed': return 'text-danger';
+                default: return 'text-goldDeep';
+            }
+        }
+
+        function titleCase(str) {
+            const s = (str || 'pending');
+            return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+        }
+
+        function renderOrders(items = globalOrders) {
+            const table = document.getElementById('orders-table');
+            const cards = document.getElementById('orders-cards');
+
+            const navBadge = document.getElementById('nav-order-count');
+            if (navBadge) {
+                const pendingCount = globalOrders.filter(o => {
+                    const s = (o.order_status || 'pending').toLowerCase();
+                    return s === 'pending' || s === 'approved';
+                }).length;
+                if (pendingCount > 0) {
+                    navBadge.textContent = pendingCount;
+                    navBadge.classList.remove('hidden');
+                } else {
+                    navBadge.classList.add('hidden');
+                }
+            }
+
+            if (items.length === 0) {
+                const empty = `<p class="col-span-full text-center text-xs text-textLight py-8">No order transactions found.</p>`;
+                if (table) table.innerHTML = empty;
+                if (cards) cards.innerHTML = empty;
+                return;
+            }
+
+            if (table) {
+                table.innerHTML = items.map(o => `
+                    <tr class="hover:bg-brandBg/50 transition">
+                        <td class="p-4 font-bold text-sidebarBg">${o.order_number || ('#' + (o.id ? o.id.toString().substring(0,8) : 'ORD'))}</td>
+                        <td class="p-4 font-medium">${o.customer_name || 'Guest Customer'}<br><span class="text-[10px] text-textLight">${o.customer_phone || ''}</span></td>
+                        <td class="p-4 font-bold text-goldDeep">₹${Number(o.total_amount || 0).toLocaleString('en-IN')}</td>
+                        <td class="p-4 font-semibold ${paymentBadgeClass(o.payment_status)}">${titleCase(o.payment_status)}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusBadgeClass(o.order_status)}">${titleCase(o.order_status)}</span></td>
+                        <td class="p-4 text-right">
+                            <button onclick="openOrderDetails('${o.id}')" class="px-3 py-1 bg-sidebarBg text-white text-[10px] font-semibold uppercase rounded hover:bg-gold transition">View / Update</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            if (cards) {
+                cards.innerHTML = items.map(o => `
+                    <div class="bg-white p-4 rounded-xl border border-lineColor shadow-sm space-y-2">
+                        <div class="flex justify-between items-center border-b border-lineColor pb-2">
+                            <span class="font-bold text-sidebarBg text-xs">${o.order_number || ('#' + (o.id ? o.id.toString().substring(0,8) : 'ORD'))}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusBadgeClass(o.order_status)}">${titleCase(o.order_status)}</span>
+                        </div>
+                        <p class="text-xs font-semibold text-textDark">${o.customer_name || 'Guest Customer'}</p>
+                        <p class="text-xs font-bold text-goldDeep">Total: ₹${Number(o.total_amount || 0).toLocaleString('en-IN')}</p>
+                        <button onclick="openOrderDetails('${o.id}')" class="w-full py-1.5 bg-sidebarBg text-white text-[10px] font-semibold uppercase rounded hover:bg-gold transition">View / Update</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        let currentOrderId = null;
+        let currentOrderPrevStatus = null; // status the order was in when the modal opened — used to detect the pending → approved transition
+
+        function openOrderDetails(id) {
+            const order = globalOrders.find(o => String(o.id) === String(id));
+            if (!order) return;
+            currentOrderId = order.id;
+            currentOrderPrevStatus = (order.order_status || 'pending').toLowerCase();
+
+            document.getElementById('od-order-id').textContent = order.order_number || ('#' + (order.id ? order.id.toString().substring(0, 8) : 'ORD'));
+            const badge = document.getElementById('od-status-badge');
+            badge.textContent = titleCase(order.order_status);
+            badge.className = 'px-3 py-1 rounded-full text-[10px] font-bold ' + statusBadgeClass(order.order_status);
+
+            document.getElementById('od-customer-name').textContent = order.customer_name || 'Guest Customer';
+            document.getElementById('od-customer-phone').textContent = order.customer_phone || '';
+            document.getElementById('od-customer-email').textContent = order.customer_email || '';
+
+            // shipping_address is a jsonb object: {house, street, city, district, state, pin, country, instructions}
+            let addr = order.shipping_address || {};
+            if (typeof addr === 'string') {
+                try { addr = JSON.parse(addr); } catch (e) { addr = {}; }
+            }
+            const addrLines = [
+                [addr.house, addr.street].filter(Boolean).join(', '),
+                [addr.city, addr.district].filter(Boolean).join(', '),
+                [addr.state, addr.pin].filter(Boolean).join(' - '),
+                addr.country
+            ].filter(Boolean).join('\n');
+            document.getElementById('od-address').textContent = addrLines || 'No address on file';
+            document.getElementById('od-instructions').textContent = addr.instructions ? ('Instructions: ' + addr.instructions) : '';
+
+            // Line items live in the separate order_items table, grouped by order_id in fetchSupabaseData.
+            const items = globalOrderItems[order.id] || [];
+            const itemsWrap = document.getElementById('od-items');
+            if (items.length > 0) {
+                itemsWrap.innerHTML = items.map(it => `
+                    <div class="flex items-center justify-between bg-white border border-lineColor rounded-lg p-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <img src="${it.product_image || 'https://placehold.co/60x60/EFE4CE/636B2F?text=%20'}" class="w-10 h-10 object-cover rounded border border-lineColor bg-lightGold">
+                            <div>
+                                <p class="font-semibold text-textDark text-xs">${it.product_name || 'Item'}</p>
+                                <p class="text-[10px] text-textLight">${it.selected_size ? 'Size: ' + it.selected_size + ' &nbsp;·&nbsp; ' : ''}Qty: ${it.quantity || 1}</p>
+                            </div>
+                        </div>
+                        <span class="font-semibold text-goldDeep text-xs">₹${Number(it.total_price || (it.unit_price || 0) * (it.quantity || 1)).toLocaleString('en-IN')}</span>
+                    </div>
+                `).join('');
+            } else {
+                itemsWrap.innerHTML = `<p class="text-xs text-textLight italic">No line items found for this order.</p>`;
+            }
+
+            document.getElementById('od-payment').textContent = titleCase(order.payment_status);
+            document.getElementById('od-subtotal').textContent = Number(order.subtotal || 0).toLocaleString('en-IN');
+            document.getElementById('od-shipping-fee').textContent = Number(order.shipping_fee || 0).toLocaleString('en-IN');
+            document.getElementById('od-weight').textContent = order.total_weight_kg != null ? ('(' + order.total_weight_kg + ' kg)') : '';
+            document.getElementById('od-total').textContent = Number(order.total_amount || 0).toLocaleString('en-IN');
+
+            document.getElementById('od-status-select').value = (order.order_status || 'pending').toLowerCase();
+            document.getElementById('od-tracking').value = order.tracking_number || '';
+            toggleTrackingField();
+
+            openModal('order-modal');
+        }
+
+        function toggleTrackingField() {
+            const val = document.getElementById('od-status-select').value;
+            document.getElementById('od-tracking-wrap').classList.toggle('hidden', val !== 'shipped');
+        }
+
+        async function submitOrderStatusUpdate() {
+            if (!currentOrderId) return;
+            const status = document.getElementById('od-status-select').value;
+            const tracking = document.getElementById('od-tracking').value.trim();
+
+            // Re-fetch the order's live status right before writing — the cached copy in
+            // globalOrders (loaded when the page/tab was last refreshed) can be stale if
+            // another admin updated this order in the meantime. Stock must only ever be
+            // deducted on the true pending → approved transition, not a stale one.
+            const { data: liveOrder, error: liveErr } = await supabaseClient
+                .from('orders')
+                .select('order_status')
+                .eq('id', currentOrderId)
+                .single();
+            const prevStatus = (!liveErr && liveOrder)
+                ? (liveOrder.order_status || 'pending').toLowerCase()
+                : currentOrderPrevStatus; // fall back to the cached value only if the live check failed
+
+            const payload = { order_status: status };
+            if (status === 'shipped' && tracking) payload.tracking_number = tracking;
+
+            let { error } = await supabaseClient.from('orders').update(payload).eq('id', currentOrderId);
+
+            // Fallback in case the orders table has no tracking_number column yet —
+            // still save the status change rather than failing the whole update.
+            if (error && payload.tracking_number !== undefined) {
+                ({ error } = await supabaseClient.from('orders').update({ order_status: status }).eq('id', currentOrderId));
+            }
+
+            if (error) {
+                alert('Error updating order: ' + error.message);
+                return;
+            }
+
+            // Only deduct stock the first time an order becomes 'approved' — re-saving
+            // an already-approved order (e.g. just to add a tracking number) must not
+            // decrement stock again.
+            if (status === 'approved' && prevStatus !== 'approved') {
+                await decrementStockForOrder(currentOrderId);
+            }
+
+            showToast('Order marked as ' + titleCase(status));
+            closeModal('order-modal');
+            fetchSupabaseData();
+        }
+
+        // Reduce stock for every line item on an order once it's approved.
+        // Sized products keep per-size stock in the `sizes` jsonb array; simple
+        // products keep a flat `stock` column. Never let stock go below 0.
+        // Pulls order_items and each product's stock fresh from Supabase rather than
+        // from the cached globalOrderItems/product lists, so the deduction is always
+        // based on the latest data, not whatever was loaded when the page opened.
+        async function decrementStockForOrder(orderId) {
+            const { data: items, error: itemsErr } = await supabaseClient
+                .from('order_items')
+                .select('*')
+                .eq('order_id', orderId);
+            if (itemsErr || !items) {
+                console.error('Could not load order items for stock deduction:', itemsErr && itemsErr.message);
+                return;
+            }
+
+            for (const item of items) {
+                if (!item.product_id) continue;
+                const qty = Number(item.quantity) || 1;
+
+                const { data: prod, error: prodErr } = await supabaseClient
+                    .from('products')
+                    .select('*')
+                    .eq('id', item.product_id)
+                    .single();
+                if (prodErr || !prod) continue;
+
+                if (item.selected_size && Array.isArray(prod.sizes) && prod.sizes.length > 0) {
+                    const newSizes = prod.sizes.map(s =>
+                        s.size === item.selected_size
+                            ? { ...s, stock: Math.max(0, Number(s.stock || 0) - qty) }
+                            : s
+                    );
+                    const { error: updErr } = await supabaseClient.from('products').update({ sizes: newSizes }).eq('id', prod.id);
+                    if (updErr) console.error('Stock update failed for product', prod.id, updErr.message);
+                } else if (prod.stock !== undefined && prod.stock !== null) {
+                    const newStock = Math.max(0, Number(prod.stock || 0) - qty);
+                    const { error: updErr } = await supabaseClient.from('products').update({ stock: newStock }).eq('id', prod.id);
+                    if (updErr) console.error('Stock update failed for product', prod.id, updErr.message);
+                }
+            }
+        }
+
+        function filterOrders() {
+            const query = document.getElementById('order-search').value.toLowerCase();
+            const filtered = globalOrders.filter(o => 
+                (o.customer_name && o.customer_name.toLowerCase().includes(query)) ||
+                (o.order_number && o.order_number.toLowerCase().includes(query)) ||
+                (o.id && o.id.toString().toLowerCase().includes(query))
+            );
+            renderOrders(filtered);
+        }
+
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) {
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            }
+        }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) {
+                m.classList.remove('flex');
+                m.classList.add('hidden');
+            }
+        }
+
+        function encodeImage(input, previewId, base64Id) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Downscale + compress before storing — raw phone photos (2-7MB
+                    // each) were bloating every products fetch to tens of MB and
+                    // causing the storefront grid to stall/never render.
+                    const img = new Image();
+                    img.onload = function() {
+                        const MAX_DIM = 1000;
+                        let w = img.width, h = img.height;
+                        if (w > MAX_DIM || h > MAX_DIM) {
+                            if (w >= h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+                            else { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.72);
+                        document.getElementById(previewId).src = compressed;
+                        document.getElementById(base64Id).value = compressed;
+                    };
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        document.getElementById('product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('p-id').value;
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const stock = document.getElementById('p-stock').value;
+            const image = document.getElementById('p-image-base64').value;
+            const sizeType = document.getElementById('p-size-type').value;
+
+            const cat1 = document.getElementById('p-category-1').value;
+            const cat2 = document.getElementById('p-category-2').value;
+            const cat3 = document.getElementById('p-category-3').value;
+
+            // Collect unique non-empty category selections
+            const catsSelected = [...new Set([cat1, cat2, cat3].filter(c => c && c.trim().length > 0))];
+            const categoryString = catsSelected.join(', ');
+
+            const payload = { name, price: Number(price), category: categoryString, image_url: image };
+
+            if (sizeType && SIZE_OPTIONS[sizeType]) {
+                // Sized product: stock lives per-size, plain stock column is cleared.
+                payload.size_type = sizeType;
+                payload.sizes = Array.from(document.querySelectorAll('.p-size-stock-input')).map(inp => ({
+                    size: inp.dataset.size,
+                    stock: inp.value === '' ? 0 : Number(inp.value)
+                }));
+                payload.stock = null;
+            } else {
+                payload.size_type = null;
+                payload.sizes = null;
+                payload.stock = stock === '' ? 0 : Number(stock);
+            }
+
+            let saveError = null;
+            if (id) {
+                const { error } = await supabaseClient.from('products').update(payload).eq('id', id);
+                saveError = error;
+                if (!error) showToast("Product updated successfully!");
+            } else {
+                const { error } = await supabaseClient.from('products').insert([payload]);
+                saveError = error;
+                if (!error) showToast("Product created with multi-categories!");
+            }
+
+            if (saveError) {
+                console.error("Product save error:", saveError.message);
+                alert("Error saving product: " + saveError.message);
+                return;
+            }
+
+            closeModal('product-modal');
+            document.getElementById('product-form').reset();
+            document.getElementById('p-id').value = '';
+            document.getElementById('p-size-type').value = '';
+            renderSizeInputs('', null);
+            fetchSupabaseData();
+        });
+
+        function openNewProduct() {
+            document.getElementById('product-form').reset();
+            document.getElementById('p-id').value = '';
+            document.getElementById('p-size-type').value = '';
+            renderSizeInputs('', null);
+            openModal('product-modal');
+        }
+
+        function editProduct(id) {
+            const prod = globalProducts.find(p => p.id === id);
+            if (!prod) return;
+
+            document.getElementById('p-id').value = prod.id;
+            document.getElementById('p-name').value = prod.name;
+            document.getElementById('p-price').value = prod.price;
+            document.getElementById('p-stock').value = (prod.stock !== undefined && prod.stock !== null) ? prod.stock : '';
+
+            const existingImage = prod.image1 || prod.image_url || prod.imageUrl || '';
+            document.getElementById('p-image-preview').src = existingImage;
+            document.getElementById('p-image-base64').value = existingImage;
+
+            // Populate up to 3 categories
+            const cats = prod.category ? String(prod.category).split(',').map(c => c.trim()) : [];
+            document.getElementById('p-category-1').value = cats[0] || '';
+            document.getElementById('p-category-2').value = cats[1] || '';
+            document.getElementById('p-category-3').value = cats[2] || '';
+
+            document.getElementById('p-size-type').value = prod.size_type || '';
+            renderSizeInputs(prod.size_type || '', prod.sizes || null);
+
+            openModal('product-modal');
+        }
+
+        async function deleteProduct(id) {
+            await supabaseClient.from('products').delete().eq('id', id);
+            showToast("Product deleted.");
+            fetchSupabaseData();
+        }
+
+        document.getElementById('category-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('c-name').value;
+            const image = document.getElementById('c-image-base64').value;
+
+            await supabaseClient.from('categories').insert([{ name, image_url: image }]);
+            showToast("Collection added!");
+            closeModal('category-modal');
+            document.getElementById('category-form').reset();
+            fetchSupabaseData();
+        });
+
+        async function deleteCategory(id) {
+            await supabaseClient.from('categories').delete().eq('id', id);
+            showToast("Collection removed.");
+            fetchSupabaseData();
+        }
+
+        document.getElementById('slide-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('s-title').value;
+            const subtitle = document.getElementById('s-subtitle').value;
+            const image = document.getElementById('s-image-base64').value;
+
+            await supabaseClient.from('hero_slides').insert([{ title, subtitle, image_url: image }]);
+            showToast("Presentation slide added!");
+            closeModal('slide-modal');
+            document.getElementById('slide-form').reset();
+            fetchSupabaseData();
+        });
+
+        async function deleteSlide(id) {
+            await supabaseClient.from('hero_slides').delete().eq('id', id);
+            showToast("Slide deleted.");
+            fetchSupabaseData();
+        }
+
+        async function startSilentDatabaseOptimization() {
+            if (window.isOptimizingDB) return;
+            window.isOptimizingDB = true;
+            console.log("Starting silent background database optimization...");
+            
+            try {
+                // 1. Fetch only product IDs to avoid timeouts
+                const { data: ids, error: idError } = await supabaseClient.from('products').select('id');
+                if (idError) throw idError;
+                
+                if (!ids || ids.length === 0) return;
+                
+                for (const item of ids) {
+                    // 2. Fetch specific product's image and name
+                    const { data: prod, error: prodError } = await supabaseClient.from('products')
+                        .select('id, name, image_url')
+                        .eq('id', item.id)
+                        .single();
+                        
+                    if (prodError) {
+                        console.error(`Error fetching product ${item.id}:`, prodError.message);
+                        continue;
+                    }
+                    
+                    // 3. Compress if large base64 image (length > 300,000 chars)
+                    if (prod.image_url && prod.image_url.startsWith('data:image/') && prod.image_url.length > 300000) {
+                        try {
+                            const compressed = await compressBase64(prod.image_url, 1000, 0.72);
+                            
+                            // 4. Update the record
+                            const { error: updateError } = await supabaseClient.from('products')
+                                .update({ image_url: compressed })
+                                .eq('id', prod.id);
+                                
+                            if (updateError) throw updateError;
+                        } catch (compressErr) {
+                            console.error(`Failed to compress image for ${prod.id}:`, compressErr);
+                        }
+                    }
+                }
+                
+                console.log("Silent background database optimization complete.");
+                window.isOptimizingDB = false;
+                fetchSupabaseData();
+                
+            } catch (err) {
+                console.error("Silent optimization failed:", err);
+                window.isOptimizingDB = false;
+            }
+        }
+        
+        function compressBase64(base64Str, maxDim = 1000, quality = 0.72) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = function() {
+                    let w = img.width, h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w >= h) { h = Math.round(h * maxDim / w); w = maxDim; }
+                        else { w = Math.round(w * maxDim / h); h = maxDim; }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.onerror = reject;
+                img.src = base64Str;
+            });
+        }
+
+        window.onload = function() {
+            checkAuth();
+        };
+    </script>
+</body>
+</html>
